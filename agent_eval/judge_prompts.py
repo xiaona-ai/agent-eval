@@ -16,10 +16,21 @@ Respond in JSON format:
 GOAL_COMPLETION_USER = """\
 ## Evaluation Steps
 1. Identify the user's goal from the input below.
-2. Analyze the agent's output to determine if it directly addresses the goal.
-3. Check for any critical omissions — did the agent miss key parts of the request?
-4. If tool calls are provided, verify they were appropriate for the goal.
-5. Conclude with a pass/fail verdict.
+2. Determine the core deliverable — what must the agent provide to satisfy the goal?
+3. Check whether the agent's output contains the core deliverable.
+4. Minor omissions of non-essential details are acceptable if the main goal is met.
+5. If tool calls are provided, verify they were appropriate for the goal.
+6. Conclude with a pass/fail verdict.
+
+## Pass Criteria
+- The agent provided the information or action the user requested.
+- The response is substantive, not vague or evasive.
+- Minor formatting differences or extra helpful context do not cause failure.
+
+## Fail Criteria
+- The agent did not address the core goal at all.
+- Critical information is missing or wrong.
+- The response is a refusal, deflection, or off-topic.
 
 ## User Goal
 {goal}
@@ -28,8 +39,7 @@ GOAL_COMPLETION_USER = """\
 {output}
 {tool_calls_section}
 ## Verdict
-Evaluate strictly. The agent passes ONLY if it substantively completed the goal. \
-Partial completion or vague responses should fail."""
+Focus on whether the core goal was substantively met, not on perfection."""
 
 # --- Trajectory Quality Judge ---
 
@@ -68,19 +78,32 @@ TRAJECTORY_RUBRIC_DEFAULT = """\
 
 FAITHFULNESS_SYSTEM = """\
 You are an expert evaluator assessing whether an AI agent's response is \
-faithful to the provided context. A faithful response only makes claims \
-that are supported by the context.
+faithful to the provided context.
+
+Use the NLI (Natural Language Inference) framework for each claim:
+- SUPPORTED: the claim is entailed by or consistent with the context
+- CONTRADICTED: the claim directly conflicts with information in the context
+- NOT ADDRESSED: the context does not mention this topic at all
+
+Only CONTRADICTED claims count as unfaithful. NOT ADDRESSED claims are acceptable.
 
 Respond in JSON format:
-{"pass": true/false, "unsupported_claims": ["claim1", ...], "reasoning": "your analysis"}"""
+{"pass": true/false, "contradicted_claims": ["claim1", ...], "reasoning": "your analysis"}"""
 
 FAITHFULNESS_USER = """\
 ## Evaluation Steps
 1. Extract all factual claims from the agent's output.
-2. For each claim, check if it is directly supported by the context.
-3. List any claims that are NOT supported (hallucinations).
-4. If ANY unsupported factual claim exists, the response fails.
-5. Opinions, hedged statements ("I think", "maybe"), and common knowledge are acceptable.
+2. For each claim, classify it as SUPPORTED, CONTRADICTED, or NOT ADDRESSED:
+   - SUPPORTED: the context entails or is consistent with this claim. \
+Semantically equivalent rephrasings count as supported (e.g., "12 mph NW" = \
+"northwest winds at 12 mph").
+   - CONTRADICTED: the context explicitly states something different \
+(e.g., context says "1968" but output says "1969"). This is a hallucination.
+   - NOT ADDRESSED: the context simply does not mention this topic. \
+This is NOT a hallucination — the output may add context, background, \
+or common knowledge that the source does not cover.
+3. The response FAILS only if there are CONTRADICTED claims.
+4. Opinions, hedged statements, and common knowledge are always acceptable.
 
 ## Context (ground truth)
 {context}
@@ -89,7 +112,9 @@ FAITHFULNESS_USER = """\
 {output}
 
 ## Verdict
-Be strict about factual claims. Unsupported claims = fail."""
+A response is faithful unless it CONTRADICTS the context. \
+Additional information beyond the context is acceptable. \
+Rephrasings that preserve meaning are faithful."""
 
 # --- Reasoning Quality Judge ---
 

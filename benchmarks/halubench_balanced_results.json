@@ -1,0 +1,610 @@
+{
+  "dataset": "HaluBench-balanced",
+  "model": "grok-4.1-fast",
+  "metrics": {
+    "n": 46,
+    "tp": 9,
+    "tn": 17,
+    "fp": 9,
+    "fn": 11,
+    "accuracy": 0.5652,
+    "accuracy_ci95": [
+      0.4225,
+      0.6979
+    ],
+    "precision": 0.5,
+    "recall": 0.45,
+    "f1": 0.4737,
+    "cohens_kappa": 0.1051,
+    "errors": 54,
+    "total_tokens": 41668,
+    "total_time_s": 349.2,
+    "avg_time_s": 7.6
+  },
+  "details": [
+    {
+      "id": "db496416-0755-4871-9f28-ad95991cc5cb",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 808,
+      "time_s": 6.1
+    },
+    {
+      "id": "d21406bb-d67d-419e-baed-a5bd85efe0ba",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 762,
+      "time_s": 4.5
+    },
+    {
+      "id": "1d96b4a4-f313-46e3-938f-06bb63844e5d",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 936,
+      "time_s": 5.5
+    },
+    {
+      "id": "2cd021f4-4207-4584-94fd-35242ea6daeb",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 654,
+      "time_s": 7.1
+    },
+    {
+      "id": "f5f7dea7-cd51-467f-8ad7-5ed82cc4324c",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 816,
+      "time_s": 6.1
+    },
+    {
+      "id": "17bfaba8-54ab-4282-a6ea-3048e630b12f",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 1528,
+      "time_s": 8.1
+    },
+    {
+      "id": "16916544-1e32-4dc2-affb-924530416d96",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 894,
+      "time_s": 5.3
+    },
+    {
+      "id": "0ff3626e-e19e-4dfa-bc71-1ce76d5a49a5",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 1183,
+      "time_s": 6.3
+    },
+    {
+      "id": "03936297-6bf5-44ce-80be-ec0f9eff6059",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 624,
+      "time_s": 6.2
+    },
+    {
+      "id": "0dc9d9da-4dc9-4cbe-88a4-2c1e09c2e0f5",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 999,
+      "time_s": 12.6
+    },
+    {
+      "id": "aa01761a-578c-4fc2-ab16-aebe5b17795b",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 751,
+      "time_s": 8.0
+    },
+    {
+      "id": "8e69e590-5608-4850-8023-a60d5beef76e",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 944,
+      "time_s": 6.8
+    },
+    {
+      "id": "cd1e0092-028a-45a3-88b8-a68c40bb2cc7",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 675,
+      "time_s": 6.9
+    },
+    {
+      "id": "5daefd35-2aca-4c15-a3e4-7886ab22c463",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 706,
+      "time_s": 6.5
+    },
+    {
+      "id": "3b92ed13-c70a-46cf-850d-ec04f2e403a6",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 954,
+      "time_s": 6.8
+    },
+    {
+      "id": "be734e26-8891-402c-bed9-c2a416c190d7",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 804,
+      "time_s": 5.1
+    },
+    {
+      "id": "acf5ca68-bab4-451e-91dd-2be660deb92a",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 879,
+      "time_s": 9.9
+    },
+    {
+      "id": "18ab4b0e-048c-406d-aa75-e9ffa1029e38",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 856,
+      "time_s": 7.1
+    },
+    {
+      "id": "cf4e37e5-c287-4b28-a65e-15aa2818e5c5",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 790,
+      "time_s": 5.8
+    },
+    {
+      "id": "c4e40c10-002c-4392-820a-4d18139ca8a3",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 940,
+      "time_s": 10.6
+    },
+    {
+      "id": "2e8ed938-6129-461a-9fee-5e0f21b09f93",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 866,
+      "time_s": 8.0
+    },
+    {
+      "id": "eb0619e7-625c-4889-81a2-c73abe0082fa",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 951,
+      "time_s": 7.0
+    },
+    {
+      "id": "90167be8-fae9-4b86-b242-ddba3319d6ef",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 816,
+      "time_s": 10.7
+    },
+    {
+      "id": "253fca31-5fb8-4023-bd5f-948d9d5214f4",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 984,
+      "time_s": 8.8
+    },
+    {
+      "id": "87c99cab-f750-4a7b-ae1f-31a61c250911",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 713,
+      "time_s": 5.3
+    },
+    {
+      "id": "e78fbf11-bb01-47f7-a9a6-c2e7026490bf",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 770,
+      "time_s": 4.7
+    },
+    {
+      "id": "8d07ab8a-c88e-4218-ad32-67a4234ecc2a",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 992,
+      "time_s": 8.8
+    },
+    {
+      "id": "101b108e-b138-4f0a-b3b8-7e3a27fc82b1",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 732,
+      "time_s": 11.9
+    },
+    {
+      "id": "e7ed4b22-0fee-4b36-8390-4d7fafd1061e",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 881,
+      "time_s": 7.0
+    },
+    {
+      "id": "e6ecba1b-691f-4f53-a231-d1a4cc96c669",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 895,
+      "time_s": 7.9
+    },
+    {
+      "id": "dc5a38ba-47c4-4ff3-882f-0854b724928e",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 977,
+      "time_s": 7.2
+    },
+    {
+      "id": "211defee-25d0-4e51-8fda-359945ac73b4",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 829,
+      "time_s": 7.1
+    },
+    {
+      "id": "4c219d65-8fe2-4029-9da0-70f5e2857bdb",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 1024,
+      "time_s": 9.2
+    },
+    {
+      "id": "64712c5c-b2b2-475e-82db-02e0ceea2016",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 927,
+      "time_s": 6.6
+    },
+    {
+      "id": "8f176cb2-ea5e-4bc7-aeca-4fa670a85ad5",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 855,
+      "time_s": 5.4
+    },
+    {
+      "id": "71b60f81-9bc2-4e86-b539-4f92536d894c",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 1413,
+      "time_s": 5.3
+    },
+    {
+      "id": "85824081-8228-451e-bdfd-ccf7f2845be7",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "tokens": 989,
+      "time_s": 8.0
+    },
+    {
+      "id": "2243335c-cbca-4e6b-9a9d-f7e5907383bf",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 1178,
+      "time_s": 8.6
+    },
+    {
+      "id": "c432bf4a-db70-4e00-a093-fe43ca9b7ab6",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 763,
+      "time_s": 6.8
+    },
+    {
+      "id": "8da1fcca-b057-439d-a261-b281c39fc955",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 1367,
+      "time_s": 10.4
+    },
+    {
+      "id": "cd57626b-5eab-4739-ab48-159101318a0b",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 891,
+      "time_s": 7.7
+    },
+    {
+      "id": "286c2321-cd5c-438b-82fd-65faae5745c5",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "tokens": 776,
+      "time_s": 7.0
+    },
+    {
+      "id": "45e63a38-81fd-4c4d-8e39-e22e7f231e52",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 923,
+      "time_s": 9.1
+    },
+    {
+      "id": "54100f0d-e733-4793-a524-f41516bc100c",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 659,
+      "time_s": 11.4
+    },
+    {
+      "id": "2ccd3520-158e-4c12-b1ca-18d9cd1efd06",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "tokens": 1023,
+      "time_s": 10.0
+    },
+    {
+      "id": "2091d4f0-9877-4fe7-a5e1-111a3b63ce80",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "tokens": 971,
+      "time_s": 7.7
+    },
+    {
+      "id": "43b0659a-4dd0-45f7-a873-f03d9ab83d7d",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "74425a89-7c64-4e5a-9a92-bf7c54fdef5f",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "28553293-d719-441b-8f00-ce3dc6df5398",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "ec5122af-2292-4dde-ace2-612c83baa04d",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "a3913ea2-6092-4768-989c-a3d4c2a81c60",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "6197c1f1-86fa-457d-bf58-c45f690f5c35",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "01525d4a-d59c-4271-9b47-16e2cd68a2c5",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "f3fda15e-f1ad-4c46-8c7b-8d7c4c269dbf",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "685f6402-8ef0-45e0-a4f0-801047cbfd20",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "66b85717-e254-45d7-808a-9ce2c9308ac6",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "51a3ebf0-1892-468c-b3e5-30db3614a09a",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "c92cab37-54e0-4ac6-aa5a-30699d8dbe3e",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "381ef468-9cc8-4b70-98b2-eab5183952b3",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "a8dff03e-b3f5-4079-ac03-ae50b90dea2f",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "c1bb7b86-5835-4cd1-95d3-73c86cdadd1c",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "4fc8e290-e7cf-400d-90e0-ba04cd6b54a0",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "7c968b39-bdd0-4cee-81fc-8c0d8b7fab03",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "5c28045f-f3ef-4927-9102-9f11f9d1cf7c",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "e9dc8976-a720-42d4-a109-850435841ad0",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "5fa158fe-15c0-4aed-a0f4-1b15f36c033f",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "e1488f18-19ee-413d-a511-3d885d8bcfa0",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "ee492468-7157-4f24-8e6b-35485db85b83",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "8c6a357c-438f-45e7-aa1f-37d9531205a8",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "fc78f02e-dddc-4371-9144-023608ab5282",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "1cda0b08-0520-4884-a997-a3e80ae889c8",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "7ff6a2e7-5853-4184-b187-19c2d13bd479",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "97d063e9-eb51-48cb-8056-c78bf769d138",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "1dea39ca-800d-4c55-8da8-83e8bced01be",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "4f9e7666-5ee0-4b43-9cbf-d85f494aa7c9",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "d19348e8-58f7-44ec-9f86-dfc938350743",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "fc79e23b-6f14-44f6-815f-377a9107c30a",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "29731bc5-188f-4bab-a2c0-5848e2847860",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "2d560a12-2b8f-4c4f-9c9f-85e7a73114f5",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "b65ccb0e-3823-4ccd-86eb-f67da9fcbcca",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "3e0173c9-6dba-4e99-a22a-0004ba3fb5e6",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "d7b5c444-1eff-406b-9ebf-75cd995d4f04",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "fa8b2cbd-06ed-44a9-bfd8-8e13b789b0cf",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "fa3686f9-bd1f-4fd5-a9b4-590c3c316c39",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "5a71fbb5-c317-4fc2-b1e8-9511a3bd6296",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "9bdcdc6e-27b9-417f-944c-ffba5ec4fa1f",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "3d22ced5-5b49-473d-8fce-ffdbaafb5df5",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "1a4d3f5d-b386-4120-a008-329e68b7ed11",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "6ee455be-25b0-4373-9246-49c25dd405a5",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "ae7c4737-8662-471c-a3be-430ba8a0cd75",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "183b5732-9453-4b3e-b480-05d2b729b737",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "b95e844a-ec8c-4587-8a19-37b9907c2620",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "9d2d700b-6454-49b3-af70-97b8303572d2",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "f5ff3679-039b-4d31-ba9c-2b23bcdcf134",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "d5b30d5a-3158-49a9-8e84-46ffa9876256",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "287f0ce6-1686-4e40-8a09-7e88b1348d2d",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "899a1de6-a36b-476a-ac25-0f232c60386b",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "3b1c98e0-bf3a-4459-a4a4-de719bafaf58",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "760742ae-bcdc-4456-be66-842e6aae50d8",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    },
+    {
+      "id": "9bf433b7-aad1-4db4-80f7-03e708a32e79",
+      "error": "[judge_api_error] Judge API returned HTTP 429: {\"error\":{\"message\":\"No available tokens. Please try again later.\",\"type\":\"rate_limit_error\",\"param\":\"\",\"code\":\"rate_limit_exceeded\"}}"
+    }
+  ]
+}
