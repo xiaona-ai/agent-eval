@@ -147,13 +147,19 @@ class JudgeProvider:
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {self.api_key}",
+                "User-Agent": "agent-eval/0.4",
             },
             method="POST",
         )
 
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
+                raw_bytes = resp.read().decode("utf-8")
+                # Handle SSE streaming responses (some providers force streaming)
+                if raw_bytes.startswith("data: "):
+                    result = self._parse_sse(raw_bytes)
+                else:
+                    result = json.loads(raw_bytes)
         except urllib.error.HTTPError as e:
             body_text = ""
             try:
@@ -190,6 +196,41 @@ class JudgeProvider:
             total_tokens=usage.get("total_tokens", 0),
             model=self.model,
         )
+
+    @staticmethod
+    def _parse_sse(raw: str) -> dict:
+        """Parse Server-Sent Events (SSE) stream into a single response.
+
+        Reassembles streamed chunks into a standard chat completion response.
+        """
+        content_parts = []
+        usage = {}
+        model = ""
+        for line in raw.split("\n"):
+            line = line.strip()
+            if not line.startswith("data: ") or line == "data: [DONE]":
+                continue
+            try:
+                chunk = json.loads(line[6:])
+            except json.JSONDecodeError:
+                continue
+            if not model:
+                model = chunk.get("model", "")
+            choices = chunk.get("choices", [])
+            for choice in choices:
+                delta = choice.get("delta", {})
+                if "content" in delta and delta["content"]:
+                    content_parts.append(delta["content"])
+            # Usage often in the last chunk
+            if "usage" in chunk and chunk["usage"]:
+                usage = chunk["usage"]
+
+        content = "".join(content_parts)
+        return {
+            "choices": [{"message": {"content": content}}],
+            "usage": usage,
+            "model": model,
+        }
 
 
 # ---------------------------------------------------------------------------
