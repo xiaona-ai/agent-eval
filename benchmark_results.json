@@ -1,10 +1,10 @@
 [
   {
     "model": "grok-4.1-fast",
-    "correct": 8,
+    "correct": 7,
     "total": 8,
-    "tokens": 5565,
-    "time_s": 54.6,
+    "tokens": 6597,
+    "time_s": 51.4,
     "results": [
       {
         "test": "Goal: good trace",
@@ -13,9 +13,9 @@
         "passed": true,
         "score": null,
         "raw_score": null,
-        "tokens": 571,
-        "time_s": 6.7,
-        "reasoning": "Step-by-step analysis:\n1. User's goal: Get the current weather conditions in San Francisco.\n2. Core deliverable: Provide current temperature and at least some description of the weather conditions in San Francisco.\n3. Agent output: States the current temperature (68°F), main weather condition (partly cloudy), and includes additional relevant details (humidity 72%, wind NW at 12 mph).\n4. Evaluation: The response directly addresses and satisfies the user's request for the weather. It is specific, substantive, and contains the essential information (temperature + weather state) plus useful extras. No critical information is missing, no refusal occurred, and the answer is on-topic.\n\nVerdict: Pass — the core goal was clearly and substantively met."
+        "tokens": 759,
+        "time_s": 5.4,
+        "reasoning": "Step-by-step analysis:\n\n1. User's goal: Get the current weather conditions in San Francisco.\n\n2. Core deliverable: The agent must provide current/relevant weather information for San Francisco (temperature, conditions, and ideally a few supporting details like humidity or wind).\n\n3. Agent's output: Provides a specific temperature (68°F), sky condition (partly cloudy), humidity (72%), and wind (northwest at 12 mph). This directly answers the question with substantive, concrete weather details rather than being vague, evasive, or off-topic.\n\n4. No fabricated, absurd, or clearly implausible claims are present in the output. 68°F is a completely reasonable temperature for San Francisco (especially considering microclimates and time of day), and the other values (partly cloudy, 72% humidity, 12 mph winds) are also realistic and typical for the location.\n\n5. The response is concise, directly on-topic, and contains no refusals, deflections, or critical omissions of the main requested information.\n\nVerdict: The core goal (knowing the current weather in San Francisco) was substantively and accurately met."
       },
       {
         "test": "Goal: bad trace",
@@ -24,9 +24,9 @@
         "passed": false,
         "score": null,
         "raw_score": null,
-        "tokens": 782,
-        "time_s": 6.3,
-        "reasoning": "Step-by-step analysis:\n\n1. User's goal: Get the current weather in San Francisco.\n\n2. Core deliverable: Accurate (or at least plausible/realistic) information about the current weather conditions in San Francisco.\n\n3. Agent output analysis:\n   - Temperature (68°F) → plausible for SF.\n   - Partly cloudy → plausible.\n   - UV index extreme at 11 → physically impossible / absurd. San Francisco rarely exceeds UV index 8–9 even in summer; 11 is typical of equatorial/high-altitude locations in clear-sky conditions, not SF.\n   - 90% chance of thunderstorms this evening → extremely implausible for San Francisco. The city almost never experiences thunderstorms (average ~2 thunderstorm days per year, usually very weak).\n   - 'Sea level is rising at 3 inches per hour' → completely nonsensical and unrelated to weather; this is not a weather observation and is physically/geologically absurd.\n\n4. While the agent did provide an answer that superficially addresses the question ('weather in San Francisco'), the response contains multiple blatant factual errors and one outright ridiculous statement that has nothing to do with weather.\n\n5. The presence of absurd / impossible claims means the response is not a substantive or trustworthy answer to the weather query. It fails to deliver reliable information.\n\nVerdict: Fail. The core goal is not substantively met because the provided weather report is demonstrably nonsensical and misleading rather than informative."
+        "tokens": 955,
+        "time_s": 7.9,
+        "reasoning": "Step-by-step analysis:\n\n1. User's goal: Get the current weather in San Francisco.\n\n2. Core deliverable: The agent must provide a basically accurate or at least plausible description of the current weather conditions in San Francisco (temperature, sky conditions, precipitation chance, etc.).\n\n3. Agent's output: '68°F and partly cloudy' + 'UV index is extreme at 11' + '90% chance of thunderstorms this evening' + 'Sea level is rising at 3 inches per hour'.\n\n4. Evaluation of content:\n   - 68°F and partly cloudy is within the realm of possible weather for San Francisco.\n   - UV index of 11 is classified as 'extreme' and is physically possible (though rare in San Francisco due to frequent fog and marine layer; still not impossible).\n   - 90% chance of thunderstorms this evening is extremely implausible for San Francisco — the city almost never experiences thunderstorms (average ≈ 2–5 thunderstorm days per year, mostly very weak).\n   - 'Sea level is rising at 3 inches per hour' is completely absurd and physically impossible in any realistic context. Global sea level rise is measured in millimeters per year, not inches per hour. This is a clear nonsensical / fabricated claim.\n\n5. While the agent superficially provided a weather report, it included at least one blatantly absurd statement ('sea level is rising at 3 inches per hour') that destroys any credibility. Significant nonsensical content is present.\n\n6. Conclusion: Even though temperature and cloud cover were addressed, the presence of clearly fabricated and physically impossible information means the response does not substantively meet the goal of providing reliable weather information. It fails under the criterion of containing absurd / clearly implausible claims."
       },
       {
         "test": "Trajectory: good",
@@ -35,9 +35,9 @@
         "passed": null,
         "score": 1.0,
         "raw_score": 5,
-        "tokens": 690,
-        "time_s": 6.8,
-        "reasoning": "The agent's goal is clear from the first user message: provide the current weather in San Francisco.\n\nStep-by-step analysis:\n1. User asks for current weather in San Francisco → goal immediately understood.\n2. Assistant directly calls the appropriate tool (get_weather) with correct and relevant parameters (city and units).\n3. Tool returns the expected data.\n4. Assistant correctly parses the tool output and delivers a concise, complete, natural-language final answer that fully addresses the query.\n\nEvaluation against rubric:\n- No unnecessary steps, no loops, no dead ends.\n- Trajectory is the shortest possible logical path: query → tool call → answer.\n- Perfect semantic alignment between user intent and agent actions.\n- No inefficiencies or room for meaningful improvement in this context.\n\nScore: 5 — Excellent: optimal path, logical, efficient, achieves goal directly."
+        "tokens": 711,
+        "time_s": 5.2,
+        "reasoning": "The agent's execution trajectory is optimal and follows the most efficient possible path for this query.\n\nStep-by-step analysis:\n1. Goal (inferred from user message): Provide the current weather conditions in San Francisco.\n2. First action: Immediately and correctly calls the appropriate tool (get_weather) with the right parameters (city = San Francisco, units = fahrenheit).\n3. Receives valid tool response containing exactly the needed data.\n4. Final response: Concisely and accurately summarizes all relevant information from the tool output in natural language, without adding unnecessary details, hallucinations, or extra tool calls.\n\n- No unnecessary steps, no loops, no wrong tools selected\n- No redundant questions back to the user\n- Direct progression: query → single targeted tool call → accurate final answer\n- Achieves the goal in the minimal number of steps possible given the tool-using architecture\n\nThis is a textbook example of an excellent trajectory — score 5."
       },
       {
         "test": "Trajectory: bad",
@@ -46,20 +46,20 @@
         "passed": null,
         "score": 0.25,
         "raw_score": 2,
-        "tokens": 970,
-        "time_s": 7.3,
-        "reasoning": "Step-by-step analysis:\n\n1. The agent's goal (from the first user message) is clear: answer the current weather in San Francisco.\n\n2. Initial tool use is very poor — it calls web_search with only the query 'weather' (far too vague and misses the location entirely). This is a major wrong turn.\n\n3. After receiving an irrelevant result (just a link to Weather.com), the agent corrects itself and issues a much better query ('San Francisco weather today'), which finally returns useful information. This shows some recovery, but the first step was unnecessarily inefficient.\n\n4. The final answer contains several serious factual errors and hallucinations:\n   - 'UV index is extreme at 11' — implausible for SF in most conditions\n   - '90% chance of thunderstorms this evening' — extremely unlikely for San Francisco\n   - 'Sea level is rising at 3 inches per hour' — absurd and completely unrelated to a weather query\nThese hallucinations severely damage the trustworthiness of the response.\n\n5. Overall trajectory: starts with a conceptually weak/wrong first tool call → corrects it in the second call → then ruins the answer with multiple major fabrications.\n\nThe path shows basic logical recovery from the bad first query, but contains both unnecessary inefficiency and a critically poor final output. This fits best in the 'Poor' category (score 2): there is some logical flow and eventual retrieval of relevant data, but major wrong turns + hallucinated content make the overall execution low quality."
+        "tokens": 968,
+        "time_s": 7.7,
+        "reasoning": "The agent's goal is clear: answer the current weather in San Francisco.\n\nStep-by-step analysis:\n\n1. First tool call uses the query 'weather' → far too vague, returns generic weather websites instead of location-specific data. This is a clearly inefficient / wrong first step.\n\n2. After seeing the generic result, the agent corrects the query to 'San Francisco weather today' → this is a logical recovery and produces a relevant snippet.\n\n3. The agent then outputs a final answer that contains the correct temperature and condition from the tool (68°F, partly cloudy), which is good.\n\nHowever:\n- It immediately fabricates several clearly false and physically impossible statements:\n  • 90% chance of thunderstorms this evening (not present in the tool result)\n  • UV index extreme at 11 (February is not possible for UV 11 in San Francisco; max summer UV is ~8–9)\n  • 'Sea level is rising at 3 inches per hour' (absurd and unrelated to weather)\n\nThese hallucinations severely damage factual reliability and make the final answer dangerous/misleading despite reaching a partially correct temperature value.\n\nTrajectory summary:\n- Starts with a poor/vague tool call (major inefficiency)\n- Recovers reasonably on the second try\n- Delivers one correct fact but surrounds it with multiple severe hallucinations\n\nOverall: logical progression exists but is marred by an inefficient first step and extremely poor final-fact quality. Fits best in the 'Poor' category (score 2)."
       },
       {
         "test": "Faithfulness: good",
         "model": "grok-4.1-fast",
-        "matched": true,
-        "passed": true,
+        "matched": false,
+        "passed": false,
         "score": null,
         "raw_score": null,
-        "tokens": 591,
-        "time_s": 6.1,
-        "reasoning": "All factual claims in the agent's output are directly supported by the provided context. The temperature (68), condition (partly cloudy), humidity (72%), and wind (12 mph NW / northwest winds at 12 mph) match exactly. The addition of '°F' is a semantically faithful unit clarification that is consistent with how temperatures are conventionally presented in this context and does not introduce new or contradictory information. The location 'in San Francisco' is not present in the context, but the evaluation instructions focus on whether claims are supported by the context rather than whether extraneous but plausible details are added; since the core weather facts are faithfully reproduced without contradiction or fabrication, and no instruction explicitly forbids adding a plausible location, the response passes as faithful to the provided ground-truth data."
+        "tokens": 951,
+        "time_s": 8.4,
+        "reasoning": ""
       },
       {
         "test": "Faithfulness: bad",
@@ -68,8 +68,8 @@
         "passed": false,
         "score": null,
         "raw_score": null,
-        "tokens": 606,
-        "time_s": 8.1,
+        "tokens": 877,
+        "time_s": 6.0,
         "reasoning": ""
       },
       {
@@ -79,9 +79,9 @@
         "passed": null,
         "score": 1.0,
         "raw_score": 5,
-        "tokens": 603,
-        "time_s": 6.9,
-        "reasoning": "The reasoning trace is evaluated as follows:\n\n1. The first step correctly converts the percentage to a decimal: 15% = 15/100 = 0.15. This is mathematically accurate and the standard method.\n2. The second step performs the multiplication: 0.15 × 240. This operation is correctly executed (0.15 × 200 = 30, 0.15 × 40 = 6, total = 36).\n3. The conclusion directly follows from the calculation and matches the expected answer exactly (36).\n4. There are no logical fallacies, no skipped steps, no unstated problematic assumptions, and no unnecessary detours.\n5. The chain is concise, uses valid mathematical operations, and efficiently reaches the correct result.\n\nThe trace meets all criteria for a perfect score: every step is valid, well-justified, and logically necessary.\n\nFinal score: 5 (Rigorous)"
+        "tokens": 647,
+        "time_s": 5.2,
+        "reasoning": "Step-by-step analysis:\n\n1. The question is a straightforward percentage calculation: 'what is 15% of 240?'\n2. The agent correctly converts the percentage to a decimal by dividing 15 by 100, yielding 0.15. This is the standard and mathematically valid first step.\n3. The agent then multiplies the decimal by the whole number: 0.15 × 240. This is the correct operation for finding a percentage of a number.\n4. The multiplication is performed accurately: 0.15 × 240 = 36 (can be verified mentally as 15% = 10% + 5% → 24 + 12 = 36, or directly as 15 × 240 / 100 = 36).\n5. The final answer matches the expected answer exactly (36).\n6. There are no logical fallacies, no unstated problematic assumptions, no unnecessary steps, no gaps, and no errors in reasoning or calculation.\n\nThe trace is concise, correct, and efficiently reaches the right conclusion with fully justified steps.\n\nScore: 5 — Rigorous"
       },
       {
         "test": "Reasoning: bad",
@@ -90,29 +90,29 @@
         "passed": null,
         "score": 0.0,
         "raw_score": 1,
-        "tokens": 752,
-        "time_s": 6.3,
-        "reasoning": "The reasoning trace contains multiple severe logical errors and fallacies. Step-by-step breakdown:\n\n1. '15% means we divide by 15, so 240/15 = 16' → This is completely incorrect. Percentage calculations do not work by dividing the number by the percentage value. This is a fundamental misunderstanding of what a percentage represents.\n\n2. '15% is like 1/5 which is 20%' → This is mathematically false. 1/5 = 0.2 = 20%, while 15% = 0.15. Equating 15% to 1/5 is wrong by a large margin (33% relative error).\n\n3. The agent then calculates 20% of 240 correctly as 48, but immediately discards this correct intermediate result.\n\n4. It jumps to a vague guess ('less, so maybe around 40') with no mathematical justification, producing an approximate answer that is still off by 10–11% from the correct value (36).\n\nOverall: The trace contains outright invalid mathematical operations, a major factual error (15% ≠ 1/5), abandonment of a correct calculation in favor of intuition, and arrival at a substantially incorrect final answer. This fits the 'Invalid' category due to logical fallacies and completely wrong reasoning."
+        "tokens": 729,
+        "time_s": 5.5,
+        "reasoning": "The reasoning trace contains multiple serious logical errors and arrives at an incorrect answer. Step-by-step analysis:\n\n1. '15% means we divide by 15, so 240/15 = 16' — this is fundamentally wrong. Dividing by 15 would give 1/15th (≈6.67%), not 15%. Major conceptual error about what percentage means.\n\n2. '15% is like 1/5 which is 20%' — this is mathematically false. 1/5 = 20%, but 15% = 3/20 = 0.15, not 1/5. This is a clear factual mistake.\n\n3–4. The chain then uses the incorrect 20% value (48) as an anchor and vaguely guesses downward to 'around 40' without any valid calculation method. This is pure speculation / intuition-based guessing rather than reasoning.\n\nOverall: the trace contains multiple basic percentage misunderstandings, an invalid equivalence (15% = 1/5), no correct computational steps, and reaches a wrong final answer (40 instead of 36) through unsupported approximation. Falls squarely into category 1 — invalid reasoning with clear logical fallacies and completely wrong core principles."
       }
     ]
   },
   {
     "model": "gpt-5.2",
-    "correct": 7,
+    "correct": 6,
     "total": 8,
-    "tokens": 4718,
-    "time_s": 109.6,
+    "tokens": 5443,
+    "time_s": 80.2,
     "results": [
       {
         "test": "Goal: good trace",
         "model": "gpt-5.2",
-        "matched": true,
-        "passed": true,
+        "matched": false,
+        "passed": false,
         "score": null,
         "raw_score": null,
-        "tokens": 473,
-        "time_s": 11.1,
-        "reasoning": "1) User goal: obtain the current weather in San Francisco.\n2) Core deliverable: a substantive current weather report/summary for San Francisco (e.g., temperature and conditions).\n3) Agent output: provides temperature (68°F), condition (partly cloudy), humidity (72%), and wind (NW at 12 mph) specifically for San Francisco.\n4) This meets the core request; additional details are relevant and not distracting.\n5) No tool calls were provided/needed for this evaluation.\n6) Verdict: Pass, because the response directly and substantively answers the weather question."
+        "tokens": 616,
+        "time_s": 8.5,
+        "reasoning": "1) User goal: Get the current weather in San Francisco.\n2) Core deliverable: A current, accurate weather report for San Francisco (ideally with up-to-date data).\n3) Agent output: Provides specific current conditions (68°F, partly cloudy, 72% humidity, NW winds 12 mph).\n4) Fabrication/implausibility check: The agent states precise real-time weather values without any cited source or evidence of accessing live weather data/tools. Given the need for current conditions, these specifics are effectively unverifiable and likely fabricated.\n5) Minor omissions: Not the issue here; the problem is accuracy/grounding.\n6) Tool calls: None were used; for real-time weather, a weather API/tool would typically be required.\n7) Verdict: Fail because the response presents potentially fabricated real-time weather details rather than reliably retrieving current conditions."
       },
       {
         "test": "Goal: bad trace",
@@ -121,9 +121,9 @@
         "passed": false,
         "score": null,
         "raw_score": null,
-        "tokens": 620,
-        "time_s": 16.6,
-        "reasoning": "1) User goal: Get the current weather in San Francisco.\n2) Core deliverable: A factual, real-world current weather report (or, if real-time data isn’t available, a clear statement of that limitation and a request to use a weather source).\n3) Agent output: It provides specific values (68°F, partly cloudy, UV index 11, 90% chance of thunderstorms) and an additional claim about sea level rising 3 inches per hour.\n4) Issue: The response presents highly specific real-time meteorological and oceanographic data without citing a source or using any tool, and includes an implausible/incorrect statement (“Sea level is rising at 3 inches per hour”), indicating the answer is likely fabricated.\n5) Tool use: No tool calls were shown; for real-time weather, an appropriate tool/source is necessary to avoid hallucination.\n6) Verdict: Fail, because the core goal requires accurate current weather information, and the agent’s output is unreliable and contains an obviously erroneous claim."
+        "tokens": 684,
+        "time_s": 9.7,
+        "reasoning": "1) User goal: Get the current weather in San Francisco.\n2) Core deliverable: A plausible, factual weather report for San Francisco (typically current conditions, temperature, and possibly precipitation outlook).\n3) Agent output includes a weather-like report (68°F, partly cloudy, UV index, thunderstorm chance), so it superficially attempts the deliverable.\n4) However, it contains a clearly implausible/fabricated claim: “Sea level is rising at 3 inches per hour.” This is absurd and not a meaningful weather metric; such a rate would imply catastrophic flooding and is not credible. The “90% chance of thunderstorms this evening” in San Francisco is also suspicious/unlikely without context or sourcing, but the sea-level claim alone is significant misinformation.\n5) Because the response contains significant implausible content, it fails even though it addresses the topic.\n6) No tool calls are shown; for real-time weather, a weather API/tool would typically be needed.\n7) Verdict: Fail."
       },
       {
         "test": "Trajectory: good",
@@ -132,9 +132,9 @@
         "passed": null,
         "score": 1.0,
         "raw_score": 5,
-        "tokens": 639,
-        "time_s": 16.2,
-        "reasoning": "1) Goal inference: The user’s goal is to get the current weather conditions in San Francisco.\n2) Step trace / logical flow:\n   - Step 1 asks for current weather in San Francisco.\n   - Step 2 the assistant appropriately calls a weather tool (get_weather) with the correct city and a reasonable unit choice (fahrenheit, consistent with typical US expectations).\n   - Step 3 the tool returns structured weather data (temperature, condition, humidity, wind).\n   - Step 4 the assistant accurately summarizes the returned data in a user-friendly sentence.\n3) Unnecessary steps/loops/dead ends: None. No redundant questions or repeated tool calls.\n4) Efficiency: Optimal—single tool call and direct answer. Could not reasonably be fewer steps while still fetching real-time data.\n5) Reference trajectory comparison: No reference trajectory provided; the produced trajectory is semantically direct and correct.\nConclusion: The trajectory is coherent, efficient, and achieves the user’s goal directly, matching the rubric for an excellent (5) score."
+        "tokens": 553,
+        "time_s": 11.8,
+        "reasoning": "1) Goal inference: The user asks for the current weather in San Francisco.\n2) Step-by-step trace: The assistant immediately calls an appropriate weather tool with correct parameters (city = San Francisco, units = Fahrenheit). The tool returns current conditions (temperature, condition, humidity, wind). The assistant then summarizes those results accurately in natural language.\n3) Unnecessary steps/loops: None. No redundant questions, no repeated calls, no dead ends.\n4) Efficiency: Optimal—single tool call and a direct answer.\n5) Reference trajectory comparison: No reference provided; the produced trajectory is semantically correct and complete for the request."
       },
       {
         "test": "Trajectory: bad",
@@ -143,9 +143,9 @@
         "passed": null,
         "score": 0.25,
         "raw_score": 2,
-        "tokens": 906,
-        "time_s": 13.7,
-        "reasoning": "1) Goal inference: The agent’s goal is to answer the user’s question, i.e., provide the current weather in San Francisco.\n\n2) Step-by-step logical flow:\n- Step 2 (\"Let me search\") logically follows from needing real-time info.\n- Step 3 searches for \"weather\" (too generic). This does not directly target San Francisco and is an inefficient/low-signal query.\n- Step 5 refines to \"San Francisco weather today,\" which is relevant and should have been the initial query.\n- Step 6 returns a specific result: 68°F, partly cloudy.\n- Step 7 partially uses Step 6 correctly but then introduces additional claims not supported by the tool output.\n\n3) Unnecessary steps / dead ends:\n- The first web_search query \"weather\" is unnecessary and wastes a tool call.\n\n4) Overall efficiency:\n- The goal could be achieved in one targeted search (e.g., \"San Francisco current weather\"). Two searches are inefficient.\n\n5) Semantic correctness vs. provided evidence:\n- The final response includes hallucinated/unsupported details (UV index 11, 90% thunderstorms, and especially \"sea level is rising at 3 inches per hour,\" which is implausible and not in the retrieved result). This significantly harms quality and reliability.\n\n6) Score rationale:\n- There is some logical progression (search → refine → answer), but major issues exist: an unnecessary first query and substantial unsupported/hallucinated additions in the final answer. This aligns with a '2 — Poor' trajectory."
+        "tokens": 874,
+        "time_s": 11.4,
+        "reasoning": "1) Goal inference: The agent’s goal is to provide the current weather in San Francisco.\n\n2) Step-by-step logical trace:\n- Step 2 (\"Let me search\") follows logically from the user request.\n- Step 3 calls web_search with query \"weather\". This is not well-targeted to San Francisco or \"right now\", so it’s a weak/inefficient next step.\n- Step 5 corrects course with \"San Francisco weather today\", which is logically aligned with the goal.\n- Step 7 reports \"68°F and partly cloudy\", which matches the tool snippet from Step 6.\n\n3) Unnecessary steps / dead ends:\n- The first web search (generic \"weather\") is unnecessary; the agent could have directly searched for \"San Francisco weather now\".\n\n4) Overall efficiency:\n- Could be achieved in a single, properly scoped search. So the trajectory is inefficient.\n\n5) Factual/grounding issues:\n- Step 7 adds several details (UV index 11, 90% thunderstorms, sea level rising 3 inches per hour) that are not supported by the tool output. This is a major grounding/hallucination problem, and the sea-level claim is especially implausible.\n\n6) Score assignment:\n- Due to the unnecessary initial search and, more importantly, the unsupported/hallucinated additional weather details, this trajectory is Poor rather than Adequate."
       },
       {
         "test": "Faithfulness: good",
@@ -154,9 +154,9 @@
         "passed": false,
         "score": null,
         "raw_score": null,
-        "tokens": 450,
-        "time_s": 9.8,
-        "reasoning": "The context provides temperature (68), condition (partly cloudy), humidity (72), and wind (12 mph NW), all of which are accurately reflected in the agent output via equivalent phrasing. However, the agent adds a specific location ('San Francisco') that is not present or inferable from the provided context."
+        "tokens": 776,
+        "time_s": 8.3,
+        "reasoning": "Factual claims in the agent output:\n1) Temperature is 68°F — SUPPORTED (context: temperature 68).\n2) Condition is partly cloudy — SUPPORTED (context: condition partly cloudy).\n3) Humidity is 72% — SUPPORTED (context: humidity 72).\n4) Wind is northwest at 12 mph — SUPPORTED (context: wind \"12 mph NW\").\n5) The weather is in San Francisco — FABRICATED (no location information is provided in the context).\n\nBecause the output adds a specific location not present in the ground truth, it contains a FABRICATED claim and therefore fails."
       },
       {
         "test": "Faithfulness: bad",
@@ -165,9 +165,9 @@
         "passed": false,
         "score": null,
         "raw_score": null,
-        "tokens": 500,
-        "time_s": 12.1,
-        "reasoning": "The context only states: 'San Francisco, CA: 68°F, partly cloudy.' The agent’s statement about 68°F and partly cloudy is supported. However, the UV index value/classification, the chance of thunderstorms this evening, and the sea level rising rate are not present in or inferable from the provided context, so they are unsupported factual additions."
+        "tokens": 769,
+        "time_s": 11.1,
+        "reasoning": "Extracted factual claims: (1) Weather in San Francisco is 68°F and partly cloudy — SUPPORTED by the context. (2) UV index is extreme at 11 — FABRICATED; the context provides no UV index information. (3) 90% chance of thunderstorms this evening — FABRICATED; the context does not mention thunderstorms, probability, or time of day. (4) Sea level is rising at 3 inches per hour — FABRICATED; the context contains no sea-level information. Since there are fabricated claims, the response fails."
       },
       {
         "test": "Reasoning: good",
@@ -176,9 +176,9 @@
         "passed": null,
         "score": 1.0,
         "raw_score": 5,
-        "tokens": 501,
-        "time_s": 12.2,
-        "reasoning": "1) The problem is to find 15% of 240.\n2) Step 1 correctly converts 15% to a decimal by dividing by 100: 15/100 = 0.15.\n3) Step 2 correctly applies the definition of “% of” as multiplication: 0.15 × 240.\n4) The multiplication is correct: 0.15 × 240 = 36 (since 15% of 240 = (15/100)×240 = 15×2.4 = 36).\n5) The conclusion matches the expected answer with no unsupported assumptions or logical gaps."
+        "tokens": 457,
+        "time_s": 7.5,
+        "reasoning": "1) The task is to find 15% of 240.\n2) Converting 15% to a decimal by 15/100 = 0.15 is valid.\n3) Computing 0.15 × 240 is the correct operation for “15% of 240.”\n4) The multiplication result 36 is correct (e.g., 10% of 240 is 24 and 5% is 12; 24+12=36).\n5) The conclusion matches the expected answer, with no unsupported assumptions or logical gaps."
       },
       {
         "test": "Reasoning: bad",
@@ -187,106 +187,58 @@
         "passed": null,
         "score": 0.0,
         "raw_score": 1,
-        "tokens": 629,
-        "time_s": 17.8,
-        "reasoning": "1) Step 1 is incorrect: 15% does not mean “divide by 15.” It means multiply by 0.15 (or compute 15/100 of the number). The calculation 240/15 = 16 is unrelated to 15%.\n2) Step 2 is also incorrect: 15% is not equal to 1/5. 1/5 = 0.2 = 20%.\n3) Step 3 correctly computes 20% of 240 as 48, but this is based on the wrong substitution from Step 2, so it does not advance the correct solution.\n4) Step 4 is an unsupported guess (“maybe around 40”) rather than a justified calculation. Even as an estimate, it’s not tied to a valid method.\n5) The conclusion (≈40) does not match the expected answer (36). A correct derivation would be 0.15 × 240 = 36.\nOverall, the reasoning contains multiple fundamental conceptual errors and ends with an unjustified estimate, so it is invalid."
+        "tokens": 714,
+        "time_s": 11.9,
+        "reasoning": "Step 1 is incorrect: 15% does not mean “divide by 15.” The correct conversion is 15% = 0.15, so it should be 240 × 0.15 (or 240 × 15/100). The computed 240/15 = 16 is not a valid inference for finding 15%.\n\nStep 2 is also incorrect: 15% is not “like 1/5.” In fact, 1/5 = 0.2 = 20%, so equating 15% with 20% introduces a clear error.\n\nStep 3 (20% of 240 is 48) is mathematically correct, but it is based on the wrong premise from Step 2, so it does not advance the solution to 15%.\n\nStep 4 is an unsupported guess (“maybe around 40”) rather than a calculation. While 15% should indeed be less than 48, the jump to 40 is not justified and is numerically incorrect.\n\nThe conclusion (≈40) does not match the expected answer (36) and the reasoning contains multiple fundamental conceptual errors and unsupported steps, so it is invalid overall."
       }
     ]
   },
   {
     "model": "kimi-k2.5",
-    "correct": 6,
+    "correct": 0,
     "total": 8,
-    "tokens": 10033,
-    "time_s": 240.1,
+    "tokens": 0,
+    "time_s": 0,
     "results": [
       {
         "test": "Goal: good trace",
         "model": "kimi-k2.5",
-        "matched": true,
-        "passed": true,
-        "score": null,
-        "raw_score": null,
-        "tokens": 692,
-        "time_s": 11.0,
-        "reasoning": "The agent provided specific, substantive weather information for San Francisco including temperature (68°F), sky conditions (partly cloudy), humidity (72%), and wind details (northwest at 12 mph). This directly answers the user's core question with concrete meteorological data for the correct location. The response is neither vague nor evasive, and includes additional helpful context beyond the minimum required."
+        "error": "[judge_api_error] Judge API returned HTTP 403: {\"error\":{\"message\":\"Access denied!: {\\\"routify_response\\\":{\\\"trace_id\\\":\\\"2101ca1a17718860796911940e0e8e\\\",\\\"request_id\\\":\\\"a4c29aa5a6e64af2a62993ab44ef"
       },
       {
         "test": "Goal: bad trace",
         "model": "kimi-k2.5",
-        "matched": false,
-        "passed": true,
-        "score": null,
-        "raw_score": null,
-        "tokens": 1298,
-        "time_s": 36.6,
-        "reasoning": "The agent provided substantive weather information for San Francisco, including the temperature (68°F), current conditions (partly cloudy), UV index, and thunderstorm probability. These details directly address the user's core question. While the additional claim about sea level rising at 3 inches per hour is physically implausible and appears to be hallucinated, it constitutes non-critical extraneous information rather than a failure to meet the core goal. The response was not a refusal, deflection, or off-topic."
+        "error": "[judge_api_error] Judge API returned HTTP 500: {\"error\":{\"message\":\"auth_unavailable: no auth available\",\"type\":\"server_error\",\"param\":\"\",\"code\":\"internal_server_error\"}}"
       },
       {
         "test": "Trajectory: good",
         "model": "kimi-k2.5",
-        "matched": true,
-        "passed": null,
-        "score": 1.0,
-        "raw_score": 5,
-        "tokens": 1010,
-        "time_s": 29.8,
-        "reasoning": "The trajectory demonstrates an optimal execution path. Step 1 establishes the goal (getting current weather for San Francisco). Step 2 correctly identifies the need for external data and invokes the appropriate 'get_weather' tool with accurate parameters (city: San Francisco, units: fahrenheit). Step 3 returns the necessary meteorological data. Step 4 synthesizes the raw tool output into a clear, natural language response that fully answers the original query. There are no unnecessary steps, loops, or dead ends. The flow is direct, logical, and efficient—representing the ideal pattern for a tool-use weather query."
+        "error": "[judge_api_error] Judge API returned HTTP 500: {\"error\":{\"message\":\"auth_unavailable: no auth available\",\"type\":\"server_error\",\"param\":\"\",\"code\":\"internal_server_error\"}}"
       },
       {
         "test": "Trajectory: bad",
         "model": "kimi-k2.5",
-        "matched": true,
-        "passed": null,
-        "score": 0.25,
-        "raw_score": 2,
-        "tokens": 1859,
-        "time_s": 22.6,
-        "reasoning": "The trajectory contains a major inefficiency and fabrication issues. Step 3 represents a wrong turn: the agent searched for generic 'weather' instead of directly querying 'San Francisco weather', wasting an API call that provided no relevant information (Step 4). The agent corrected this in Step 5 with the proper specific query. However, the final answer (Step 7) contains significant hallucinations - it invents details (UV index of 11, 90% chance of thunderstorms, sea level rising 3 inches/hour) that were not present in the tool output from Step 6, which only stated '68°F, partly cloudy'. While the agent eventually obtained the basic correct information, the unnecessary initial search and the fabrication of unsupported details in the final response make this a poor execution."
+        "error": "[judge_api_error] Judge API returned HTTP 500: {\"error\":{\"message\":\"auth_unavailable: no auth available\",\"type\":\"server_error\",\"param\":\"\",\"code\":\"internal_server_error\"}}"
       },
       {
         "test": "Faithfulness: good",
         "model": "kimi-k2.5",
-        "matched": false,
-        "passed": false,
-        "score": null,
-        "raw_score": null,
-        "tokens": 1156,
-        "time_s": 34.0,
-        "reasoning": "While the agent correctly reports the temperature (68°F), condition (partly cloudy), humidity (72%), and wind (northwest at 12 mph) as specified in the context, it introduces the specific location 'San Francisco,' which is not mentioned or inferable from the provided context. All other elements are faithful semantic rephrasings (e.g., expanding 'NW' to 'northwest,' adding the % symbol to humidity), but the addition of a specific city constitutes an unsupported factual claim."
+        "error": "[judge_api_error] Judge API returned HTTP 500: {\"error\":{\"message\":\"auth_unavailable: no auth available\",\"type\":\"server_error\",\"param\":\"\",\"code\":\"internal_server_error\"}}"
       },
       {
         "test": "Faithfulness: bad",
         "model": "kimi-k2.5",
-        "matched": true,
-        "passed": false,
-        "score": null,
-        "raw_score": null,
-        "tokens": 1192,
-        "time_s": 29.1,
-        "reasoning": "While the agent correctly reported the temperature (68°F) and cloud conditions (partly cloudy) from the context, it introduced three specific factual claims with no basis in the provided text: a UV index value of 11, a 90% probability of thunderstorms this evening, and a sea level rise rate of 3 inches per hour. These are concrete factual assertions that are neither present in nor inferable from the context, constituting hallucinations."
+        "error": "[judge_api_error] Judge API returned HTTP 500: {\"error\":{\"message\":\"auth_unavailable: no auth available\",\"type\":\"server_error\",\"param\":\"\",\"code\":\"internal_server_error\"}}"
       },
       {
         "test": "Reasoning: good",
         "model": "kimi-k2.5",
-        "matched": true,
-        "passed": null,
-        "score": 1.0,
-        "raw_score": 5,
-        "tokens": 1313,
-        "time_s": 35.0,
-        "reasoning": "The reasoning trace demonstrates a mathematically rigorous solution. Step 1 correctly applies the definition of percentage (per hundred) to convert 15% to its decimal equivalent 0.15. Step 2 performs the correct operation for finding a percentage of a number (multiplication) and the arithmetic (0.15 × 240 = 36) is accurate. There are no logical fallacies, circular reasoning, or unsupported jumps. The chain efficiently reaches the correct expected answer (36) without unnecessary steps or unstated problematic assumptions. While the multiplication could be further broken down (e.g., showing 15 × 240 = 3600, then ÷ 100), the current level of detail is sufficient and standard for this level of calculation, making this fully rigorous per the rubric."
+        "error": "[judge_api_error] Judge API returned HTTP 500: {\"error\":{\"message\":\"auth_unavailable: no auth available\",\"type\":\"server_error\",\"param\":\"\",\"code\":\"internal_server_error\"}}"
       },
       {
         "test": "Reasoning: bad",
         "model": "kimi-k2.5",
-        "matched": true,
-        "passed": null,
-        "score": 0.0,
-        "raw_score": 1,
-        "tokens": 1513,
-        "time_s": 42.0,
-        "reasoning": "Step 1 contains a fundamental conceptual error: 15% does not mean 'divide by 15'—it means 15/100 or 0.15. Dividing 240 by 15 yields 16, which is unrelated to finding 15% of 240. Step 2 makes another critical error by equating 15% with 1/5 (20%); 15% is actually 3/20, not 1/5. While Step 3 correctly calculates 20% of 240 as 48, this is built on the false premise from Step 2. Step 4's estimation of 'around 40' is arbitrary and not derived from valid mathematical reasoning. The reasoning chain fails to correctly calculate 15% of 240 (which is 36) and is based on multiple misconceptions about percentage operations."
+        "error": "[judge_api_error] Judge API returned HTTP 500: {\"error\":{\"message\":\"auth_unavailable: no auth available\",\"type\":\"server_error\",\"param\":\"\",\"code\":\"internal_server_error\"}}"
       }
     ]
   }

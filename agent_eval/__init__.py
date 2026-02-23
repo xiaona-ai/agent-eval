@@ -1,5 +1,5 @@
 """agent-eval: Lightweight evaluation framework for AI agents."""
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 from .trace import Trace, Message
 from .diff import diff_traces, TraceDiff

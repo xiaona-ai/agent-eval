@@ -18,9 +18,12 @@ GOAL_COMPLETION_USER = """\
 1. Identify the user's goal from the input below.
 2. Determine the core deliverable — what must the agent provide to satisfy the goal?
 3. Check whether the agent's output contains the core deliverable.
-4. Minor omissions of non-essential details are acceptable if the main goal is met.
-5. If tool calls are provided, verify they were appropriate for the goal.
-6. Conclude with a pass/fail verdict.
+4. Check for fabricated, absurd, or clearly implausible claims in the output. \
+Even if the agent addresses the goal, responses containing significant \
+misinformation or nonsensical content should fail.
+5. Minor omissions of non-essential details are acceptable if the main goal is met.
+6. If tool calls are provided, verify they were appropriate for the goal.
+7. Conclude with a pass/fail verdict.
 
 ## Pass Criteria
 - The agent provided the information or action the user requested.
@@ -30,6 +33,9 @@ GOAL_COMPLETION_USER = """\
 ## Fail Criteria
 - The agent did not address the core goal at all.
 - Critical information is missing or wrong.
+- The response contains fabricated, absurd, or clearly implausible claims \
+(e.g., impossible statistics, nonsensical facts). Even if the core question \
+is superficially addressed, responses with significant fabricated content fail.
 - The response is a refusal, deflection, or off-topic.
 
 ## User Goal

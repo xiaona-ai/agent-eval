@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-eval-lite"
-version = "0.4.1"
+version = "0.4.2"
 description = "Lightweight agent evaluation framework — zero dependencies, local-first, framework-agnostic"
 readme = "README.md"
 license = {text = "MIT"}
