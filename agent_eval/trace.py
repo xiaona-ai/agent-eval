@@ -13,7 +13,7 @@ class Message:
     """A single message in an agent trace."""
 
     __slots__ = ("role", "content", "name", "tool_calls", "tool_call_id",
-                 "timestamp", "latency_ms", "metadata")
+                 "timestamp", "latency_ms", "usage", "metadata")
 
     def __init__(self, data: dict):
         self.role: str = data.get("role", "")
@@ -23,6 +23,7 @@ class Message:
         self.tool_call_id: Optional[str] = data.get("tool_call_id")
         self.timestamp: Optional[str] = data.get("timestamp")
         self.latency_ms: Optional[float] = data.get("latency_ms")
+        self.usage: Optional[Dict[str, Any]] = data.get("usage")
         self.metadata: Dict[str, Any] = data.get("metadata", {})
 
     @property
@@ -84,6 +85,8 @@ class Message:
             d["timestamp"] = self.timestamp
         if self.latency_ms is not None:
             d["latency_ms"] = self.latency_ms
+        if self.usage is not None:
+            d["usage"] = self.usage
         if self.metadata:
             d["metadata"] = self.metadata
         return d
