@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-eval-lite"
+version = "0.1.0"
+description = "Lightweight agent evaluation framework — zero dependencies, local-first, framework-agnostic"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [{name = "xiaona-ai", email = "yangx3852@gmail.com"}]
+keywords = ["agent", "evaluation", "testing", "llm", "quality"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+[project.scripts]
+agent-eval = "agent_eval.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["agent_eval*"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
