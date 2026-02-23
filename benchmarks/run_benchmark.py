@@ -1,12 +1,9 @@
-"""Real-world benchmark: run actual LLM judges against crafted traces.
+"""Multi-model benchmark for agent-eval-lite judges.
 
-Uses Sorai API (OpenAI-compatible) with real models.
-NOT a unit test — makes real API calls and costs money.
+Runs 8 judge evaluations across multiple models to validate quality.
 """
-import json
-import os
-import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import json, os, sys, time
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 from agent_eval import (
     Trace, JudgeProvider,
@@ -16,17 +13,14 @@ from agent_eval import (
 
 API_KEY = os.environ.get("SORAI_API_KEY", "")
 BASE_URL = "https://newapi.sorai.me/v1"
-MODEL = "grok-4.1-mini"
 
-# ============================================================
-# Trace 1: GOOD — Weather agent, efficient and accurate
-# ============================================================
+# === Traces ===
+
 GOOD_TRACE = Trace.from_messages([
     {"role": "user", "content": "What's the weather in San Francisco right now?"},
     {"role": "assistant", "content": None, "tool_calls": [
         {"id": "call_1", "type": "function", "function": {
-            "name": "get_weather",
-            "arguments": '{"city": "San Francisco", "units": "fahrenheit"}'
+            "name": "get_weather", "arguments": '{"city": "San Francisco", "units": "fahrenheit"}'
         }}
     ]},
     {"role": "tool", "name": "get_weather", "tool_call_id": "call_1",
@@ -34,24 +28,19 @@ GOOD_TRACE = Trace.from_messages([
     {"role": "assistant", "content": "It's currently 68°F and partly cloudy in San Francisco, with 72% humidity and northwest winds at 12 mph."},
 ])
 
-# ============================================================
-# Trace 2: BAD — Weather agent, hallucinating and inefficient
-# ============================================================
 BAD_TRACE = Trace.from_messages([
     {"role": "user", "content": "What's the weather in San Francisco right now?"},
     {"role": "assistant", "content": "Let me search for that information."},
     {"role": "assistant", "content": None, "tool_calls": [
         {"id": "call_1", "type": "function", "function": {
-            "name": "web_search",
-            "arguments": '{"query": "weather"}'
+            "name": "web_search", "arguments": '{"query": "weather"}'
         }}
     ]},
     {"role": "tool", "name": "web_search", "tool_call_id": "call_1",
      "content": "Weather.com - Check your local weather forecast"},
     {"role": "assistant", "content": None, "tool_calls": [
         {"id": "call_2", "type": "function", "function": {
-            "name": "web_search",
-            "arguments": '{"query": "San Francisco weather today"}'
+            "name": "web_search", "arguments": '{"query": "San Francisco weather today"}'
         }}
     ]},
     {"role": "tool", "name": "web_search", "tool_call_id": "call_2",
@@ -59,9 +48,6 @@ BAD_TRACE = Trace.from_messages([
     {"role": "assistant", "content": "The weather in San Francisco is 68°F and partly cloudy. The UV index is extreme at 11, and there's a 90% chance of thunderstorms this evening. Sea level is rising at 3 inches per hour."},
 ])
 
-# ============================================================
-# Trace 3: GOOD — Math reasoning, clean chain
-# ============================================================
 GOOD_REASONING = """
 The user asks: what is 15% of 240?
 Step 1: Convert 15% to decimal: 15/100 = 0.15
@@ -69,9 +55,6 @@ Step 2: Multiply: 0.15 × 240 = 36
 Therefore, 15% of 240 is 36.
 """
 
-# ============================================================
-# Trace 4: BAD — Math reasoning, flawed logic
-# ============================================================
 BAD_REASONING = """
 The user asks: what is 15% of 240?
 Step 1: 15% means we divide by 15, so 240/15 = 16
@@ -81,90 +64,108 @@ Step 4: But we want 15%, which is less, so maybe around 40.
 Therefore, 15% of 240 is approximately 40.
 """
 
+GOOD_CONTEXT = '{"temperature": 68, "condition": "partly cloudy", "humidity": 72, "wind": "12 mph NW"}'
+BAD_CONTEXT = "San Francisco, CA: 68°F, partly cloudy"
 
-def run_benchmark():
-    if not API_KEY:
-        print("❌ Set SORAI_API_KEY to run benchmark")
-        sys.exit(1)
+TESTS = [
+    ("Goal: good trace", judge_goal_completion, True,
+     {"goal": "What's the weather in San Francisco?", "output": "It's currently 68°F and partly cloudy in San Francisco, with 72% humidity and northwest winds at 12 mph."}),
+    ("Goal: bad trace", judge_goal_completion, False,
+     {"goal": "What's the weather in San Francisco?", "output": "The weather in San Francisco is 68°F and partly cloudy. The UV index is extreme at 11, and there's a 90% chance of thunderstorms this evening. Sea level is rising at 3 inches per hour."}),
+    ("Trajectory: good", judge_trajectory, True,
+     {"trajectory": [m.to_dict() for m in GOOD_TRACE]}),
+    ("Trajectory: bad", judge_trajectory, False,
+     {"trajectory": [m.to_dict() for m in BAD_TRACE]}),
+    ("Faithfulness: good", judge_faithfulness, True,
+     {"context": GOOD_CONTEXT, "output": "It's currently 68°F and partly cloudy in San Francisco, with 72% humidity and northwest winds at 12 mph."}),
+    ("Faithfulness: bad", judge_faithfulness, False,
+     {"context": BAD_CONTEXT, "output": "The weather in San Francisco is 68°F and partly cloudy. The UV index is extreme at 11, and there's a 90% chance of thunderstorms this evening. Sea level is rising at 3 inches per hour."}),
+    ("Reasoning: good", judge_reasoning, True,
+     {"reasoning": GOOD_REASONING, "expected_answer": "36"}),
+    ("Reasoning: bad", judge_reasoning, False,
+     {"reasoning": BAD_REASONING, "expected_answer": "36"}),
+]
 
-    provider = JudgeProvider(
-        api_key=API_KEY, base_url=BASE_URL, model=MODEL, timeout=60
-    )
-
+def run_model(model_name):
+    provider = JudgeProvider(api_key=API_KEY, base_url=BASE_URL, model=model_name, timeout=60)
     results = []
+    correct = 0
+    total_tokens = 0
+    total_time = 0
 
-    def run_judge(name, fn, expected_good, **kwargs):
+    print(f"\n{'─'*60}")
+    print(f"  Model: {model_name}")
+    print(f"{'─'*60}")
+
+    for name, judge_fn, expect_good, kwargs in TESTS:
         try:
-            result = fn(provider, **kwargs)
-            status = "✅" if (result.success == expected_good) else "⚠️ UNEXPECTED"
+            t = time.time()
+            result = judge_fn(provider, **kwargs)
+            elapsed = time.time() - t
+            total_time += elapsed
+
+            match = result.success == expect_good
+            if match:
+                correct += 1
+            icon = "✅" if match else "⚠️"
+
             score_str = ""
             if result.passed is not None:
-                score_str = f"pass={result.passed}"
+                score_str = f"pass={'✓' if result.passed else '✗'}"
             if result.score is not None:
-                score_str = f"score={result.score:.2f} (raw={result.raw_score}/5)"
-            tokens = result.judge_cost.total_tokens if result.judge_cost else "?"
-            print(f"  {status} {name}: {score_str} | tokens={tokens}")
-            print(f"    Reasoning: {result.reasoning[:120]}...")
+                score_str = f"{result.raw_score}/5 ({result.score:.0%})"
+
+            tokens = result.judge_cost.total_tokens if result.judge_cost else 0
+            total_tokens += tokens
+            reason_preview = result.reasoning[:80].replace('\n', ' ') if result.reasoning else "(no reasoning)"
+
+            print(f"  {icon} {name:25s} │ {score_str:12s} │ {tokens:4d}tok │ {elapsed:.1f}s")
+            print(f"     └─ {reason_preview}...")
+
             results.append({
-                "name": name, "success_matches_expected": result.success == expected_good,
-                "score": result.score, "passed": result.passed, "raw_score": result.raw_score,
-                "tokens": result.judge_cost.total_tokens if result.judge_cost else 0,
+                "test": name, "model": model_name, "matched": match,
+                "passed": result.passed, "score": result.score, "raw_score": result.raw_score,
+                "tokens": tokens, "time_s": round(elapsed, 1),
                 "reasoning": result.reasoning,
             })
         except Exception as e:
-            print(f"  ❌ {name}: ERROR — {e}")
-            results.append({"name": name, "error": str(e)})
+            print(f"  ❌ {name:25s} │ ERROR: {str(e)[:60]}")
+            results.append({"test": name, "model": model_name, "error": str(e)[:200]})
 
+    print(f"{'─'*60}")
+    print(f"  Score: {correct}/8 │ Tokens: {total_tokens} │ Time: {total_time:.0f}s")
+    print(f"{'─'*60}")
+    return {"model": model_name, "correct": correct, "total": 8, "tokens": total_tokens, "time_s": round(total_time, 1), "results": results}
+
+
+def main():
+    if not API_KEY:
+        print("❌ Set SORAI_API_KEY"); sys.exit(1)
+
+    models = ["grok-4.1-fast", "gpt-5.2", "kimi-k2.5"]
+
+    print("=" * 60)
+    print("  agent-eval-lite — Multi-Model Benchmark")
+    print("=" * 60)
+
+    all_results = []
+    for m in models:
+        all_results.append(run_model(m))
+
+    # Summary table
     print(f"\n{'='*60}")
-    print(f"agent-eval-lite Benchmark — Model: {MODEL}")
+    print(f"  SUMMARY")
     print(f"{'='*60}")
-
-    # --- Goal Completion ---
-    print("\n📋 Goal Completion Judge")
-    run_judge("good_trace_goal", judge_goal_completion, True,
-              goal="What's the weather in San Francisco?",
-              output=GOOD_TRACE.final_response.text_content)
-    run_judge("bad_trace_goal", judge_goal_completion, False,
-              goal="What's the weather in San Francisco?",
-              output=BAD_TRACE.final_response.text_content)
-
-    # --- Trajectory ---
-    print("\n📋 Trajectory Quality Judge")
-    run_judge("good_trace_traj", judge_trajectory, True,
-              trajectory=[m.to_dict() for m in GOOD_TRACE])
-    run_judge("bad_trace_traj", judge_trajectory, False,
-              trajectory=[m.to_dict() for m in BAD_TRACE])
-
-    # --- Faithfulness ---
-    print("\n📋 Faithfulness Judge")
-    good_context = '{"temperature": 68, "condition": "partly cloudy", "humidity": 72, "wind": "12 mph NW"}'
-    bad_context = "San Francisco, CA: 68°F, partly cloudy"
-    run_judge("good_trace_faith", judge_faithfulness, True,
-              context=good_context, output=GOOD_TRACE.final_response.text_content)
-    run_judge("bad_trace_faith", judge_faithfulness, False,
-              context=bad_context, output=BAD_TRACE.final_response.text_content)
-
-    # --- Reasoning ---
-    print("\n📋 Reasoning Quality Judge")
-    run_judge("good_reasoning", judge_reasoning, True,
-              reasoning=GOOD_REASONING, expected_answer="36")
-    run_judge("bad_reasoning", judge_reasoning, False,
-              reasoning=BAD_REASONING, expected_answer="36")
-
-    # --- Summary ---
-    print(f"\n{'='*60}")
-    correct = sum(1 for r in results if r.get("success_matches_expected"))
-    total = len(results)
-    total_tokens = sum(r.get("tokens", 0) for r in results)
-    print(f"Results: {correct}/{total} matched expectations")
-    print(f"Total tokens: {total_tokens}")
+    print(f"  {'Model':20s} │ {'Score':7s} │ {'Tokens':7s} │ {'Time':6s}")
+    print(f"  {'─'*20}─┼─{'─'*7}─┼─{'─'*7}─┼─{'─'*6}")
+    for r in all_results:
+        print(f"  {r['model']:20s} │ {r['correct']}/{r['total']}     │ {r['tokens']:7d} │ {r['time_s']:5.0f}s")
     print(f"{'='*60}\n")
 
-    # Save results
     with open("benchmark_results.json", "w") as f:
-        json.dump({"model": MODEL, "results": results, "total_tokens": total_tokens}, f, indent=2, ensure_ascii=False)
-    print("Results saved to benchmark_results.json")
+        json.dump(all_results, f, indent=2, ensure_ascii=False)
+    print("Saved to benchmark_results.json")
 
 
 if __name__ == "__main__":
-    run_benchmark()
+    main()
