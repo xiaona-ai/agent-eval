@@ -358,6 +358,107 @@ class TestFaithfulnessJudge(unittest.TestCase):
         self.assertFalse(result.passed)
         self.assertEqual(len(result.unsupported_claims), 1)
 
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_thorough_faithful(self, mock_urlopen):
+        """Thorough mode: 2 API calls (extract + verify), all supported."""
+        responses = [
+            _mock_api_response({"claims": ["Paris is the capital of France"]}),
+            _mock_api_response({"verdicts": [
+                {"claim": "Paris is the capital of France", "verdict": "supported"}
+            ]}),
+        ]
+        mock_urlopen.side_effect = responses
+        p = JudgeProvider(api_key="test")
+        result = judge_faithfulness(
+            p, context="Paris is the capital of France",
+            output="The capital of France is Paris",
+            mode="thorough",
+        )
+        self.assertTrue(result.passed)
+        self.assertEqual(result.unsupported_claims, [])
+        self.assertEqual(mock_urlopen.call_count, 2)
+        self.assertIn("1 claims", result.reasoning)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_thorough_contradicted(self, mock_urlopen):
+        """Thorough mode: contradicted claim → fail."""
+        responses = [
+            _mock_api_response({"claims": [
+                "Berlin is the capital of France",
+            ]}),
+            _mock_api_response({"verdicts": [
+                {"claim": "Berlin is the capital of France", "verdict": "contradicted",
+                 "reason": "Context says Paris, not Berlin"},
+            ]}),
+        ]
+        mock_urlopen.side_effect = responses
+        p = JudgeProvider(api_key="test")
+        result = judge_faithfulness(
+            p, context="Paris is the capital of France",
+            output="Berlin is the capital of France",
+            mode="thorough",
+        )
+        self.assertFalse(result.passed)
+        self.assertEqual(len(result.unsupported_claims), 1)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_thorough_idk_not_unfaithful(self, mock_urlopen):
+        """Thorough mode: idk claims are NOT counted as unfaithful."""
+        responses = [
+            _mock_api_response({"claims": [
+                "It is 68°F",
+                "in San Francisco",
+            ]}),
+            _mock_api_response({"verdicts": [
+                {"claim": "It is 68°F", "verdict": "supported"},
+                {"claim": "in San Francisco", "verdict": "idk",
+                 "reason": "Context doesn't mention location"},
+            ]}),
+        ]
+        mock_urlopen.side_effect = responses
+        p = JudgeProvider(api_key="test")
+        result = judge_faithfulness(
+            p, context='{"temperature": 68}',
+            output="It is 68°F in San Francisco",
+            mode="thorough",
+        )
+        self.assertTrue(result.passed)  # idk doesn't fail!
+        self.assertEqual(result.unsupported_claims, [])
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_thorough_no_claims(self, mock_urlopen):
+        """Thorough mode: no claims extracted → pass."""
+        mock_urlopen.return_value = _mock_api_response({"claims": []})
+        p = JudgeProvider(api_key="test")
+        result = judge_faithfulness(
+            p, context="anything", output="Hello!",
+            mode="thorough",
+        )
+        self.assertTrue(result.passed)
+        self.assertEqual(mock_urlopen.call_count, 1)  # Only extraction call
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_thorough_cost_aggregation(self, mock_urlopen):
+        """Thorough mode: costs from both calls are aggregated."""
+        responses = [
+            _mock_api_response(
+                {"claims": ["fact1"]},
+                usage={"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150},
+            ),
+            _mock_api_response(
+                {"verdicts": [{"claim": "fact1", "verdict": "supported"}]},
+                usage={"prompt_tokens": 200, "completion_tokens": 80, "total_tokens": 280},
+            ),
+        ]
+        mock_urlopen.side_effect = responses
+        p = JudgeProvider(api_key="test")
+        result = judge_faithfulness(
+            p, context="ctx", output="fact1", mode="thorough",
+        )
+        self.assertEqual(result.judge_cost.prompt_tokens, 300)
+        self.assertEqual(result.judge_cost.completion_tokens, 130)
+        self.assertEqual(result.judge_cost.total_tokens, 430)
+
 
 class TestReasoningJudge(unittest.TestCase):
 

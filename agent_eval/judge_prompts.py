@@ -199,3 +199,73 @@ Respond in JSON format:
 CUSTOM_SCORE_LIKERT = """\
 Respond in JSON format:
 {{"score": <1-5>, "reasoning": "your step-by-step analysis"}}"""
+
+# --- Multi-step Faithfulness Pipeline (thorough mode) ---
+
+CLAIMS_EXTRACTION_SYSTEM = """\
+You are a precise claim extractor. Extract all factual claims from the \
+given text. Each claim should be a self-contained, atomic statement that \
+can be independently verified against a source.
+
+Respond in JSON format:
+{"claims": ["claim1", "claim2", ...]}"""
+
+CLAIMS_EXTRACTION_USER = """\
+Extract every factual claim from the following text. Include:
+- Explicit factual statements (numbers, names, dates, quantities)
+- Implicit claims (e.g., "the best" implies a comparison)
+- Causal claims (X caused Y, X led to Y)
+
+Do NOT include:
+- Opinions explicitly marked as such ("I think...")
+- Questions
+- Greetings or filler text
+
+Each claim must be self-contained — someone should understand it \
+without seeing the original text.
+
+## Text
+{output}
+
+## Claims (JSON)"""
+
+CLAIM_VERIFICATION_SYSTEM = """\
+You are a precise fact-checker. For each claim, determine whether it is \
+supported by, contradicted by, fabricated beyond, or not addressed in \
+the provided context.
+
+Respond in JSON format:
+{{"verdicts": [{{"claim": "...", "verdict": "supported|contradicted|fabricated|idk", \
+"reason": "..."}}]}}"""
+
+CLAIM_VERIFICATION_USER = """\
+For each claim below, classify it against the provided context:
+
+- **supported**: The context entails or is consistent with this claim. \
+Semantically equivalent rephrasings are supported.
+- **contradicted**: The context directly conflicts with this claim, or \
+the claim subtly distorts information from the context (meaning shifts, \
+added specificity the source doesn't have, hedged→definitive).
+- **fabricated**: The claim introduces specific facts, numbers, statistics, \
+or quantitative details that are completely absent from the context AND \
+could mislead the reader. Examples: made-up percentages, invented measurements, \
+specific predictions not in the source.
+- **idk**: The claim is not addressed by the context, but is either \
+common knowledge, a reasonable inference, or a benign addition that \
+cannot mislead anyone. Examples: well-known location names, standard \
+units, widely-known facts.
+
+IMPORTANT distinctions:
+- "idk" = benign gap (common knowledge, location context, trivial additions)
+- "fabricated" = dangerous gap (specific numbers, statistics, predictions, \
+measurements that look authoritative but have no source)
+- "contradicted" = context says X, claim says Y (direct conflict)
+- Only "contradicted" and "fabricated" count as unfaithful.
+
+## Context (ground truth)
+{context}
+
+## Claims to verify
+{claims}
+
+## Verdicts (JSON)"""

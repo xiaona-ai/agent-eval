@@ -405,6 +405,7 @@ def judge_faithfulness(
     provider: JudgeProvider,
     context: str,
     output: str,
+    mode: str = "fast",
     pricing: Optional[Dict[str, Dict[str, float]]] = None,
 ) -> JudgeResult:
     """Judge whether the agent's output is faithful to the provided context.
@@ -413,11 +414,15 @@ def judge_faithfulness(
         provider: JudgeProvider instance.
         context: Ground truth context (tool results, retrieved docs, etc.).
         output: The agent's response to evaluate.
+        mode: "fast" (single-call, default) or "thorough" (multi-step pipeline).
         pricing: Optional pricing table for cost estimation.
 
     Returns:
         JudgeResult with passed=True/False and unsupported_claims list.
     """
+    if mode == "thorough":
+        return _judge_faithfulness_thorough(provider, context, output, pricing)
+
     user_msg = prompts.FAITHFULNESS_USER.format(context=context, output=output)
     messages = [
         {"role": "system", "content": prompts.FAITHFULNESS_SYSTEM},
@@ -436,6 +441,111 @@ def judge_faithfulness(
         unsupported_claims=parsed.get("unfaithful_claims", parsed.get("contradicted_claims", parsed.get("unsupported_claims", []))),
         judge_cost=cost,
         raw_response=raw,
+    )
+
+
+def _judge_faithfulness_thorough(
+    provider: JudgeProvider,
+    context: str,
+    output: str,
+    pricing: Optional[Dict[str, Dict[str, float]]] = None,
+) -> JudgeResult:
+    """Multi-step faithfulness evaluation pipeline.
+
+    Step 1: Extract claims from the output.
+    Step 2: Verify each claim against the context.
+    Step 3: Aggregate verdicts into a final score.
+
+    Claims marked "idk" (not addressed by context) are NOT counted as
+    unfaithful — only "contradicted" claims cause failure.
+    """
+    total_cost = JudgeCost(model=provider.model)
+
+    # Step 1: Claims extraction
+    messages_extract = [
+        {"role": "system", "content": prompts.CLAIMS_EXTRACTION_SYSTEM},
+        {"role": "user", "content": prompts.CLAIMS_EXTRACTION_USER.format(output=output)},
+    ]
+    raw1, usage1 = provider.complete(messages_extract)
+    parsed1 = _parse_json_response(raw1)
+    cost1 = provider._make_cost(usage1)
+    total_cost.prompt_tokens += cost1.prompt_tokens
+    total_cost.completion_tokens += cost1.completion_tokens
+    total_cost.total_tokens += cost1.total_tokens
+
+    claims = parsed1.get("claims", [])
+    if not claims:
+        # No claims extracted — pass by default
+        if pricing:
+            total_cost.compute_cost(pricing)
+        return JudgeResult(
+            passed=True,
+            reasoning="No factual claims found in the output.",
+            unsupported_claims=[],
+            judge_cost=total_cost,
+            raw_response=raw1,
+        )
+
+    # Step 2: Per-claim verification
+    claims_text = json.dumps(claims, ensure_ascii=False, indent=2)
+    messages_verify = [
+        {"role": "system", "content": prompts.CLAIM_VERIFICATION_SYSTEM},
+        {"role": "user", "content": prompts.CLAIM_VERIFICATION_USER.format(
+            context=context, claims=claims_text,
+        )},
+    ]
+    raw2, usage2 = provider.complete(messages_verify)
+    parsed2 = _parse_json_response(raw2)
+    cost2 = provider._make_cost(usage2)
+    total_cost.prompt_tokens += cost2.prompt_tokens
+    total_cost.completion_tokens += cost2.completion_tokens
+    total_cost.total_tokens += cost2.total_tokens
+
+    # Step 3: Aggregate
+    verdicts = parsed2.get("verdicts", [])
+    contradicted = []
+    fabricated = []
+    supported = 0
+    idk = 0
+    for v in verdicts:
+        verdict_val = v.get("verdict", "").lower().strip()
+        claim_text = v.get("claim", "")
+        reason = v.get("reason", "")
+        label = f"{claim_text} ({reason})" if reason else claim_text
+        if verdict_val == "contradicted":
+            contradicted.append(label)
+        elif verdict_val == "fabricated":
+            fabricated.append(label)
+        elif verdict_val == "supported":
+            supported += 1
+        else:  # idk
+            idk += 1
+
+    unfaithful = contradicted + fabricated
+    passed = len(unfaithful) == 0
+
+    # Build reasoning summary
+    reasoning_parts = [
+        f"Extracted {len(claims)} claims from output.",
+        f"Verified: {supported} supported, {len(contradicted)} contradicted, "
+        f"{len(fabricated)} fabricated, {idk} not addressed (idk).",
+    ]
+    if contradicted:
+        reasoning_parts.append(f"Contradicted: {'; '.join(contradicted)}")
+    if fabricated:
+        reasoning_parts.append(f"Fabricated: {'; '.join(fabricated)}")
+    if not unfaithful:
+        reasoning_parts.append("All verifiable claims are supported by the context.")
+
+    if pricing:
+        total_cost.compute_cost(pricing)
+
+    return JudgeResult(
+        passed=passed,
+        reasoning=" ".join(reasoning_parts),
+        unsupported_claims=unfaithful,
+        judge_cost=total_cost,
+        raw_response=f"--- Step 1 (claims) ---\n{raw1}\n--- Step 2 (verdicts) ---\n{raw2}",
     )
 
 
