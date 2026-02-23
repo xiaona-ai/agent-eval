@@ -183,6 +183,15 @@ class TestParseJsonResponse(unittest.TestCase):
         result = _parse_json_response('Here is my eval: {"pass": false, "reasoning": "bad"}')
         self.assertFalse(result["pass"])
 
+    def test_nested_json(self):
+        result = _parse_json_response('{"a": {"b": 1}, "c": 2}')
+        self.assertEqual(result["a"]["b"], 1)
+
+    def test_multiple_json_objects(self):
+        """Should parse the first valid JSON from start."""
+        result = _parse_json_response('{"a": 1} extra {"b": 2}')
+        self.assertEqual(result["a"], 1)
+
     def test_invalid_json(self):
         result = _parse_json_response("not json at all")
         self.assertIn("_raw", result)

@@ -204,13 +204,16 @@ def _parse_json_response(raw: str) -> dict:
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        # Try to find first { ... } block
-        m2 = re.search(r"\{.*\}", text, re.DOTALL)
-        if m2:
-            try:
-                return json.loads(m2.group(0))
-            except json.JSONDecodeError:
-                pass
+        # Try to extract JSON starting from the first {
+        start = text.find("{")
+        if start != -1:
+            # Try progressively shorter substrings from the last }
+            for end in range(len(text), start, -1):
+                if text[end - 1] == "}":
+                    try:
+                        return json.loads(text[start:end])
+                    except json.JSONDecodeError:
+                        continue
         return {"_raw": raw}
 
 
