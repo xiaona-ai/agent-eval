@@ -433,7 +433,7 @@ def judge_faithfulness(
     return JudgeResult(
         passed=_parse_bool(parsed.get("pass", False)),
         reasoning=parsed.get("reasoning", ""),
-        unsupported_claims=parsed.get("contradicted_claims", parsed.get("unsupported_claims", [])),
+        unsupported_claims=parsed.get("unfaithful_claims", parsed.get("contradicted_claims", parsed.get("unsupported_claims", []))),
         judge_cost=cost,
         raw_response=raw,
     )

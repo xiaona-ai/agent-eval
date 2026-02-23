@@ -80,30 +80,38 @@ FAITHFULNESS_SYSTEM = """\
 You are an expert evaluator assessing whether an AI agent's response is \
 faithful to the provided context.
 
-Use the NLI (Natural Language Inference) framework for each claim:
-- SUPPORTED: the claim is entailed by or consistent with the context
-- CONTRADICTED: the claim directly conflicts with information in the context
-- NOT ADDRESSED: the context does not mention this topic at all
+Classify each factual claim in the output as:
+- SUPPORTED: entailed by or consistent with the context
+- CONTRADICTED: directly conflicts with information in the context
+- FABRICATED: introduces specific facts, numbers, or details that are \
+absent from the context and cannot be verified from it (extrinsic hallucination)
+- BENIGN: adds common knowledge, location context, or trivial details \
+that do not mislead the reader
 
-Only CONTRADICTED claims count as unfaithful. NOT ADDRESSED claims are acceptable.
+CONTRADICTED and FABRICATED claims both count as unfaithful.
+BENIGN additions and SUPPORTED claims are acceptable.
 
 Respond in JSON format:
-{"pass": true/false, "contradicted_claims": ["claim1", ...], "reasoning": "your analysis"}"""
+{"pass": true/false, "unfaithful_claims": ["claim1", ...], "reasoning": "your analysis"}"""
 
 FAITHFULNESS_USER = """\
 ## Evaluation Steps
 1. Extract all factual claims from the agent's output.
-2. For each claim, classify it as SUPPORTED, CONTRADICTED, or NOT ADDRESSED:
+2. For each claim, classify it:
    - SUPPORTED: the context entails or is consistent with this claim. \
 Semantically equivalent rephrasings count as supported (e.g., "12 mph NW" = \
-"northwest winds at 12 mph").
+"northwest winds at 12 mph"). Minor formatting differences are fine.
    - CONTRADICTED: the context explicitly states something different \
-(e.g., context says "1968" but output says "1969"). This is a hallucination.
-   - NOT ADDRESSED: the context simply does not mention this topic. \
-This is NOT a hallucination — the output may add context, background, \
-or common knowledge that the source does not cover.
-3. The response FAILS only if there are CONTRADICTED claims.
-4. Opinions, hedged statements, and common knowledge are always acceptable.
+(e.g., context says "budget" but output says "production budget"). \
+This is an intrinsic hallucination.
+   - FABRICATED: the output introduces specific facts, statistics, or \
+details that are nowhere in the context (e.g., adding a UV index or \
+storm probability when the context only mentions temperature). \
+This is an extrinsic hallucination.
+   - BENIGN: common knowledge, location names already implied, or \
+trivial clarifications that do not mislead. These are acceptable.
+3. The response FAILS if there are any CONTRADICTED or FABRICATED claims.
+4. Opinions, hedged statements, and genuinely common knowledge are always OK.
 
 ## Context (ground truth)
 {context}
@@ -112,9 +120,10 @@ or common knowledge that the source does not cover.
 {output}
 
 ## Verdict
-A response is faithful unless it CONTRADICTS the context. \
-Additional information beyond the context is acceptable. \
-Rephrasings that preserve meaning are faithful."""
+Be precise: distinguish between harmless rephrasings (OK) and \
+specific fabricated details (not OK). When in doubt about whether \
+something is BENIGN vs FABRICATED, ask: could this specific detail \
+mislead someone who trusts this output?"""
 
 # --- Reasoning Quality Judge ---
 
