@@ -1,5 +1,5 @@
 """agent-eval: Lightweight evaluation framework for AI agents."""
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 from .trace import Trace, Message
 from .diff import diff_traces, TraceDiff
@@ -31,6 +31,17 @@ from .safety import (
     assert_no_sensitive_data,
     assert_no_injection_leak,
 )
+from .judge import (
+    JudgeProvider,
+    JudgeResult,
+    JudgeCost,
+    Rubric,
+    judge_goal_completion,
+    judge_trajectory,
+    judge_faithfulness,
+    judge_reasoning,
+    create_custom_judge,
+)
 
 __all__ = [
     # Core
@@ -49,4 +60,9 @@ __all__ = [
     "ConsistencyReport", "assert_consistency",
     # Safety (v0.3)
     "assert_no_sensitive_data", "assert_no_injection_leak",
+    # Judge (v0.4)
+    "JudgeProvider", "JudgeResult", "JudgeCost", "Rubric",
+    "judge_goal_completion", "judge_trajectory",
+    "judge_faithfulness", "judge_reasoning",
+    "create_custom_judge",
 ]

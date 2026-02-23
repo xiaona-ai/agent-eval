@@ -1,6 +1,7 @@
 """CLI for agent-eval."""
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -8,6 +9,10 @@ from typing import Any, Dict, Optional
 from .assertions import EvalFailure
 from .consistency import ConsistencyReport, assert_consistency
 from .cost import _sum_cost, _sum_tokens
+from .judge import (
+    JudgeProvider, judge_goal_completion, judge_trajectory,
+    judge_faithfulness, judge_reasoning, create_custom_judge,
+)
 from .trace import Trace
 from .diff import diff_traces
 
@@ -51,6 +56,21 @@ def main():
     p_consistency.add_argument("--min-answer-consistency", type=float, dest="min_answer_consistency")
     p_consistency.add_argument("--max-step-variance", type=float, dest="max_step_variance")
 
+    # judge
+    p_judge = sub.add_parser("judge", help="Run LLM-as-judge evaluation on a trace")
+    p_judge.add_argument("file", help="JSONL trace file")
+    p_judge.add_argument("--judge-type", choices=["goal", "trajectory", "faithfulness", "reasoning", "custom"],
+                         default="goal", help="Judge type (default: goal)")
+    p_judge.add_argument("--api-key", required=False, help="API key (or set JUDGE_API_KEY env var)")
+    p_judge.add_argument("--base-url", default="https://api.openai.com/v1", help="API base URL")
+    p_judge.add_argument("--model", default="gpt-4o", help="Judge model (default: gpt-4o)")
+    p_judge.add_argument("--goal", help="User goal (for goal judge)")
+    p_judge.add_argument("--context", help="Ground truth context (for faithfulness judge)")
+    p_judge.add_argument("--criteria", help="Custom evaluation criteria (for custom judge)")
+    p_judge.add_argument("--binary", action="store_true", help="Binary pass/fail (for custom judge)")
+    p_judge.add_argument("--pricing", help="Path to pricing JSON file for cost tracking")
+    p_judge.add_argument("--json", action="store_true", dest="as_json", help="Output as JSON")
+
     args = parser.parse_args()
 
     if args.command == "show":
@@ -84,6 +104,9 @@ def main():
 
     elif args.command == "consistency":
         _run_consistency(args)
+
+    elif args.command == "judge":
+        _run_judge(args)
 
     else:
         parser.print_help()
@@ -256,6 +279,141 @@ def _run_consistency(args):
         )
     except EvalFailure as exc:
         print(f"\n❌ {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
+def _run_judge(args):
+    api_key = args.api_key or os.environ.get("JUDGE_API_KEY")
+    if not api_key:
+        print("❌ --api-key or JUDGE_API_KEY env var required.", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        trace = Trace.from_jsonl(args.file)
+    except Exception as exc:
+        print(f"❌ Failed to read trace: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    pricing = None
+    if args.pricing:
+        try:
+            pricing = _load_pricing(args.pricing)
+        except Exception as exc:
+            print(f"❌ Failed to read pricing: {exc}", file=sys.stderr)
+            sys.exit(1)
+
+    provider = JudgeProvider(
+        api_key=api_key, base_url=args.base_url, model=args.model,
+    )
+
+    try:
+        jtype = args.judge_type
+
+        if jtype == "goal":
+            goal = args.goal
+            if not goal:
+                # Try to infer from first user message
+                for m in trace:
+                    if m.is_user:
+                        goal = m.text_content
+                        break
+            if not goal:
+                print("❌ --goal required (or trace must have a user message).", file=sys.stderr)
+                sys.exit(1)
+            final = trace.final_response
+            output = final.text_content if final else ""
+            tool_calls_data = None
+            if trace.tool_calls:
+                tool_calls_data = [m.to_dict().get("tool_calls", []) for m in trace.tool_calls]
+            result = judge_goal_completion(provider, goal=goal, output=output,
+                                           tool_calls=tool_calls_data, pricing=pricing)
+
+        elif jtype == "trajectory":
+            traj = [m.to_dict() for m in trace]
+            result = judge_trajectory(provider, trajectory=traj, pricing=pricing)
+
+        elif jtype == "faithfulness":
+            context = args.context
+            if not context:
+                # Gather tool responses as context
+                tool_resps = [m.text_content for m in trace.tool_responses]
+                context = "\n---\n".join(tool_resps) if tool_resps else ""
+            if not context:
+                print("❌ --context required (or trace must have tool responses).", file=sys.stderr)
+                sys.exit(1)
+            final = trace.final_response
+            output = final.text_content if final else ""
+            result = judge_faithfulness(provider, context=context, output=output, pricing=pricing)
+
+        elif jtype == "reasoning":
+            # Use all assistant messages as reasoning trace
+            reasoning_parts = [m.text_content for m in trace.assistant_messages if m.text_content]
+            reasoning = "\n\n".join(reasoning_parts)
+            result = judge_reasoning(provider, reasoning=reasoning, pricing=pricing)
+
+        elif jtype == "custom":
+            if not args.criteria:
+                print("❌ --criteria required for custom judge.", file=sys.stderr)
+                sys.exit(1)
+            judge_fn = create_custom_judge(criteria=args.criteria, binary=args.binary)
+            first_user = ""
+            for m in trace:
+                if m.is_user:
+                    first_user = m.text_content
+                    break
+            final = trace.final_response
+            output = final.text_content if final else ""
+            result = judge_fn(provider=provider, input=first_user, output=output, pricing=pricing)
+
+        else:
+            print(f"❌ Unknown judge type: {jtype}", file=sys.stderr)
+            sys.exit(1)
+
+    except EvalFailure as exc:
+        print(f"❌ {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    # Output
+    if args.as_json:
+        out = {
+            "judge_type": args.judge_type,
+            "model": args.model,
+        }
+        if result.passed is not None:
+            out["passed"] = result.passed
+        if result.score is not None:
+            out["score"] = round(result.score, 4)
+        if result.raw_score is not None:
+            out["raw_score"] = result.raw_score
+        out["reasoning"] = result.reasoning
+        if result.unsupported_claims:
+            out["unsupported_claims"] = result.unsupported_claims
+        if result.judge_cost:
+            out["judge_cost"] = {
+                "prompt_tokens": result.judge_cost.prompt_tokens,
+                "completion_tokens": result.judge_cost.completion_tokens,
+                "total_tokens": result.judge_cost.total_tokens,
+                "model": result.judge_cost.model,
+                "estimated_cost_usd": round(result.judge_cost.estimated_cost_usd, 6),
+            }
+        print(json.dumps(out, indent=2, ensure_ascii=False))
+    else:
+        icon = "✅" if result.success else "❌"
+        print(f"{icon} Judge: {args.judge_type} | Model: {args.model}")
+        if result.passed is not None:
+            print(f"  Result: {'PASS' if result.passed else 'FAIL'}")
+        if result.score is not None:
+            print(f"  Score:  {result.score:.2f} (raw: {result.raw_score}/5)")
+        if result.reasoning:
+            print(f"  Reason: {result.reasoning}")
+        if result.unsupported_claims:
+            print(f"  Unsupported claims: {result.unsupported_claims}")
+        if result.judge_cost:
+            c = result.judge_cost
+            cost_str = f"${c.estimated_cost_usd:.6f}" if c.estimated_cost_usd else "n/a"
+            print(f"  Tokens: {c.total_tokens} | Cost: {cost_str}")
+
+    if not result.success:
         sys.exit(1)
 
 
