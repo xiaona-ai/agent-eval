@@ -452,5 +452,71 @@ class TestDefaultRubrics(unittest.TestCase):
         self.assertEqual(scores, [1, 2, 3, 4, 5])
 
 
+class TestCodexReviewFixes(unittest.TestCase):
+    """Tests for bugs found by Codex gpt-5.3-codex-xhigh review."""
+
+    def test_bool_string_false(self):
+        """bool('false') should be False, not True."""
+        from agent_eval.judge import _parse_bool
+        self.assertFalse(_parse_bool("false"))
+        self.assertFalse(_parse_bool("False"))
+        self.assertFalse(_parse_bool("FALSE"))
+        self.assertTrue(_parse_bool("true"))
+        self.assertTrue(_parse_bool("True"))
+        self.assertTrue(_parse_bool(True))
+        self.assertFalse(_parse_bool(False))
+        self.assertFalse(_parse_bool(0))
+        self.assertTrue(_parse_bool(1))
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_goal_string_false(self, mock_urlopen):
+        """LLM returning 'false' as string should still fail."""
+        mock_urlopen.return_value = _mock_api_response(
+            {"pass": "false", "reasoning": "nope"}
+        )
+        p = JudgeProvider(api_key="test")
+        result = judge_goal_completion(p, goal="X", output="Y")
+        self.assertFalse(result.passed)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_score_clamped_above_5(self, mock_urlopen):
+        """Score > 5 should be clamped to 5 (1.0 normalized)."""
+        mock_urlopen.return_value = _mock_api_response(
+            {"score": 7, "reasoning": "too generous"}
+        )
+        p = JudgeProvider(api_key="test")
+        result = judge_trajectory(p, trajectory=[{"role": "user", "content": "x"}])
+        self.assertEqual(result.raw_score, 5)
+        self.assertAlmostEqual(result.score, 1.0)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_score_clamped_below_1(self, mock_urlopen):
+        """Score < 1 should be clamped to 1 (0.0 normalized)."""
+        mock_urlopen.return_value = _mock_api_response(
+            {"score": -1, "reasoning": "harsh"}
+        )
+        p = JudgeProvider(api_key="test")
+        result = judge_trajectory(p, trajectory=[{"role": "user", "content": "x"}])
+        self.assertEqual(result.raw_score, 1)
+        self.assertAlmostEqual(result.score, 0.0)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_missing_usage_in_response(self, mock_urlopen):
+        """API returning no usage field should not crash."""
+        response_body = json.dumps({
+            "choices": [{"message": {"content": '{"pass": true, "reasoning": "ok"}'}}],
+        }).encode("utf-8")
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = response_body
+        mock_resp.__enter__ = MagicMock(return_value=mock_resp)
+        mock_resp.__exit__ = MagicMock(return_value=False)
+        mock_urlopen.return_value = mock_resp
+        p = JudgeProvider(api_key="test")
+        result = judge_goal_completion(p, goal="X", output="Y")
+        self.assertTrue(result.passed)
+        self.assertIsNotNone(result.judge_cost)
+        self.assertEqual(result.judge_cost.total_tokens, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

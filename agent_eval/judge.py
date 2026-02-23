@@ -182,6 +182,8 @@ class JudgeProvider:
 
     def _make_cost(self, usage: dict) -> JudgeCost:
         """Build a JudgeCost from API usage response."""
+        if not usage or not isinstance(usage, dict):
+            return JudgeCost(model=self.model)
         return JudgeCost(
             prompt_tokens=usage.get("prompt_tokens", 0),
             completion_tokens=usage.get("completion_tokens", 0),
@@ -193,6 +195,15 @@ class JudgeProvider:
 # ---------------------------------------------------------------------------
 # Response parsing helpers
 # ---------------------------------------------------------------------------
+
+def _parse_bool(value: Any) -> bool:
+    """Parse a boolean from LLM output (handles string 'false'/'true')."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in ("true", "1", "yes")
+    return bool(value)
+
 
 def _parse_json_response(raw: str) -> dict:
     """Parse JSON from LLM response, handling markdown code fences."""
@@ -281,7 +292,7 @@ def judge_goal_completion(
         cost.compute_cost(pricing)
 
     return JudgeResult(
-        passed=bool(parsed.get("pass", False)),
+        passed=_parse_bool(parsed.get("pass", False)),
         reasoning=parsed.get("reasoning", ""),
         judge_cost=cost,
         raw_response=raw,
@@ -335,6 +346,7 @@ def judge_trajectory(
     if raw_score is not None:
         try:
             raw_score = int(raw_score)
+            raw_score = max(1, min(5, raw_score))
             score = (raw_score - 1) / 4.0  # Normalize 1-5 to 0-1
         except (ValueError, TypeError):
             raw_score = None
@@ -378,7 +390,7 @@ def judge_faithfulness(
         cost.compute_cost(pricing)
 
     return JudgeResult(
-        passed=bool(parsed.get("pass", False)),
+        passed=_parse_bool(parsed.get("pass", False)),
         reasoning=parsed.get("reasoning", ""),
         unsupported_claims=parsed.get("unsupported_claims", []),
         judge_cost=cost,
@@ -432,6 +444,7 @@ def judge_reasoning(
     if raw_score is not None:
         try:
             raw_score = int(raw_score)
+            raw_score = max(1, min(5, raw_score))
             score = (raw_score - 1) / 4.0
         except (ValueError, TypeError):
             raw_score = None
@@ -512,7 +525,7 @@ def create_custom_judge(
 
         if binary:
             return JudgeResult(
-                passed=bool(parsed.get("pass", False)),
+                passed=_parse_bool(parsed.get("pass", False)),
                 reasoning=parsed.get("reasoning", ""),
                 judge_cost=cost,
                 raw_response=raw,
@@ -523,6 +536,7 @@ def create_custom_judge(
             if raw_score is not None:
                 try:
                     raw_score = int(raw_score)
+                    raw_score = max(1, min(5, raw_score))
                     score = (raw_score - 1) / 4.0
                 except (ValueError, TypeError):
                     raw_score = None
