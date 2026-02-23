@@ -82,14 +82,22 @@ faithful to the provided context.
 
 Classify each factual claim in the output as:
 - SUPPORTED: entailed by or consistent with the context
-- CONTRADICTED: directly conflicts with information in the context
+- CONTRADICTED: directly conflicts with or subtly distorts information \
+in the context (e.g., changing "budget" to "production budget", or \
+converting "quarter-hour" to a specific "15 minutes" when the source \
+is ambiguous)
 - FABRICATED: introduces specific facts, numbers, or details that are \
-absent from the context and cannot be verified from it (extrinsic hallucination)
-- BENIGN: adds common knowledge, location context, or trivial details \
-that do not mislead the reader
+completely absent from the context (extrinsic hallucination)
+- BENIGN: adds widely-known common knowledge or trivial formatting \
+changes that cannot mislead anyone
 
 CONTRADICTED and FABRICATED claims both count as unfaithful.
 BENIGN additions and SUPPORTED claims are acceptable.
+
+Be especially alert to:
+- Subtle meaning shifts in paraphrasing (intrinsic hallucination)
+- Inferences presented as facts when the source is ambiguous
+- Specific numbers or names added that aren't in the source
 
 Respond in JSON format:
 {"pass": true/false, "unfaithful_claims": ["claim1", ...], "reasoning": "your analysis"}"""
@@ -98,20 +106,20 @@ FAITHFULNESS_USER = """\
 ## Evaluation Steps
 1. Extract all factual claims from the agent's output.
 2. For each claim, classify it:
-   - SUPPORTED: the context entails or is consistent with this claim. \
-Semantically equivalent rephrasings count as supported (e.g., "12 mph NW" = \
-"northwest winds at 12 mph"). Minor formatting differences are fine.
-   - CONTRADICTED: the context explicitly states something different \
-(e.g., context says "budget" but output says "production budget"). \
-This is an intrinsic hallucination.
-   - FABRICATED: the output introduces specific facts, statistics, or \
-details that are nowhere in the context (e.g., adding a UV index or \
-storm probability when the context only mentions temperature). \
-This is an extrinsic hallucination.
-   - BENIGN: common knowledge, location names already implied, or \
-trivial clarifications that do not mislead. These are acceptable.
+   - SUPPORTED: the context entails this claim. Semantically equivalent \
+rephrasings that preserve the original meaning are supported.
+   - CONTRADICTED: the output subtly changes, narrows, or broadens \
+the meaning of information in the context. Examples: adding specificity \
+the source doesn't have ("budget" → "production budget"), changing \
+hedged language to definitive claims, or presenting ambiguous info as fact.
+   - FABRICATED: the output introduces entirely new facts, statistics, \
+or details with no basis in the context.
+   - BENIGN: universally known facts or trivial formatting that cannot \
+mislead (e.g., standard date formatting).
 3. The response FAILS if there are any CONTRADICTED or FABRICATED claims.
-4. Opinions, hedged statements, and genuinely common knowledge are always OK.
+4. When in doubt between SUPPORTED and CONTRADICTED, check: does the \
+rephrasing preserve the EXACT same meaning, or does it add/change \
+nuance? If nuance changed, it's CONTRADICTED.
 
 ## Context (ground truth)
 {context}
@@ -120,10 +128,8 @@ trivial clarifications that do not mislead. These are acceptable.
 {output}
 
 ## Verdict
-Be precise: distinguish between harmless rephrasings (OK) and \
-specific fabricated details (not OK). When in doubt about whether \
-something is BENIGN vs FABRICATED, ask: could this specific detail \
-mislead someone who trusts this output?"""
+Be precise about subtle meaning shifts. A good paraphrase preserves meaning; \
+a bad one distorts it."""
 
 # --- Reasoning Quality Judge ---
 

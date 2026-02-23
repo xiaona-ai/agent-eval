@@ -1,0 +1,828 @@
+[
+  {
+    "dataset": "FaithBench",
+    "model": "gpt-4o",
+    "metrics": {
+      "n": 100,
+      "tp": 0,
+      "tn": 59,
+      "fp": 0,
+      "fn": 41,
+      "accuracy": 0.59,
+      "accuracy_ci95": [
+        0.492,
+        0.6813
+      ],
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "cohens_kappa": 0.0,
+      "errors": 0,
+      "total_tokens": 96152,
+      "total_time_s": 741.0,
+      "avg_time_s": 7.4
+    },
+    "details": [
+      {
+        "id": "fb_batch_15.json_37",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 1684,
+        "time_s": 6.2
+      },
+      {
+        "id": "fb_batch_14.json_2",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1516,
+        "time_s": 8.2
+      },
+      {
+        "id": "fb_batch_1.json_36",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 620,
+        "time_s": 6.0
+      },
+      {
+        "id": "fb_batch_10.json_41",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 1038,
+        "time_s": 11.0
+      },
+      {
+        "id": "fb_batch_1.json_32",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 673,
+        "time_s": 5.7
+      },
+      {
+        "id": "fb_batch_9.json_9",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 931,
+        "time_s": 6.7
+      },
+      {
+        "id": "fb_batch_6.json_24",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 763,
+        "time_s": 6.1
+      },
+      {
+        "id": "fb_batch_4.json_12",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 784,
+        "time_s": 7.6
+      },
+      {
+        "id": "fb_batch_9.json_44",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 905,
+        "time_s": 6.4
+      },
+      {
+        "id": "fb_batch_8.json_40",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 917,
+        "time_s": 11.2
+      },
+      {
+        "id": "fb_batch_9.json_37",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 900,
+        "time_s": 6.3
+      },
+      {
+        "id": "fb_batch_10.json_12",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1043,
+        "time_s": 4.7
+      },
+      {
+        "id": "fb_batch_3.json_11",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 685,
+        "time_s": 7.2
+      },
+      {
+        "id": "fb_batch_16.json_13",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1701,
+        "time_s": 5.5
+      },
+      {
+        "id": "fb_batch_15.json_27",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 1653,
+        "time_s": 5.6
+      },
+      {
+        "id": "fb_batch_12.json_41",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1102,
+        "time_s": 16.0
+      },
+      {
+        "id": "fb_batch_3.json_26",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 689,
+        "time_s": 7.8
+      },
+      {
+        "id": "fb_batch_1.json_11",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 702,
+        "time_s": 6.9
+      },
+      {
+        "id": "fb_batch_14.json_8",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1399,
+        "time_s": 6.6
+      },
+      {
+        "id": "fb_batch_8.json_13",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 836,
+        "time_s": 16.9
+      },
+      {
+        "id": "fb_batch_7.json_5",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 868,
+        "time_s": 5.5
+      },
+      {
+        "id": "fb_batch_5.json_38",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 831,
+        "time_s": 6.6
+      },
+      {
+        "id": "fb_batch_6.json_11",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 849,
+        "time_s": 5.2
+      },
+      {
+        "id": "fb_batch_16.json_42",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1850,
+        "time_s": 5.7
+      },
+      {
+        "id": "fb_batch_2.json_45",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 676,
+        "time_s": 5.4
+      },
+      {
+        "id": "fb_batch_3.json_36",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 696,
+        "time_s": 6.1
+      },
+      {
+        "id": "fb_batch_6.json_25",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 776,
+        "time_s": 10.9
+      },
+      {
+        "id": "fb_batch_7.json_28",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 814,
+        "time_s": 5.9
+      },
+      {
+        "id": "fb_batch_2.json_28",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 656,
+        "time_s": 4.8
+      },
+      {
+        "id": "fb_batch_8.json_9",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 860,
+        "time_s": 8.9
+      },
+      {
+        "id": "fb_batch_9.json_12",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 909,
+        "time_s": 13.9
+      },
+      {
+        "id": "fb_batch_14.json_16",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 1598,
+        "time_s": 7.9
+      },
+      {
+        "id": "fb_batch_6.json_41",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 896,
+        "time_s": 6.3
+      },
+      {
+        "id": "fb_batch_7.json_25",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 813,
+        "time_s": 8.0
+      },
+      {
+        "id": "fb_batch_3.json_38",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 711,
+        "time_s": 18.1
+      },
+      {
+        "id": "fb_batch_6.json_2",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 861,
+        "time_s": 9.1
+      },
+      {
+        "id": "fb_batch_9.json_43",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 917,
+        "time_s": 5.6
+      },
+      {
+        "id": "fb_batch_5.json_40",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 772,
+        "time_s": 6.5
+      },
+      {
+        "id": "fb_batch_15.json_15",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1715,
+        "time_s": 6.6
+      },
+      {
+        "id": "fb_batch_7.json_21",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 863,
+        "time_s": 8.7
+      },
+      {
+        "id": "fb_batch_6.json_23",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 807,
+        "time_s": 5.8
+      },
+      {
+        "id": "fb_batch_7.json_20",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 864,
+        "time_s": 14.6
+      },
+      {
+        "id": "fb_batch_10.json_19",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 991,
+        "time_s": 6.5
+      },
+      {
+        "id": "fb_batch_4.json_26",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 751,
+        "time_s": 15.2
+      },
+      {
+        "id": "fb_batch_2.json_46",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 680,
+        "time_s": 8.8
+      },
+      {
+        "id": "fb_batch_11.json_7",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 1012,
+        "time_s": 6.1
+      },
+      {
+        "id": "fb_batch_4.json_24",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 800,
+        "time_s": 8.7
+      },
+      {
+        "id": "fb_batch_7.json_40",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 925,
+        "time_s": 8.5
+      },
+      {
+        "id": "fb_batch_6.json_13",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 776,
+        "time_s": 5.9
+      },
+      {
+        "id": "fb_batch_1.json_47",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 611,
+        "time_s": 5.5
+      },
+      {
+        "id": "fb_batch_5.json_8",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 804,
+        "time_s": 10.5
+      },
+      {
+        "id": "fb_batch_12.json_33",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1152,
+        "time_s": 7.1
+      },
+      {
+        "id": "fb_batch_16.json_41",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1825,
+        "time_s": 5.7
+      },
+      {
+        "id": "fb_batch_1.json_4",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 593,
+        "time_s": 5.8
+      },
+      {
+        "id": "fb_batch_2.json_23",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 670,
+        "time_s": 7.6
+      },
+      {
+        "id": "fb_batch_8.json_38",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 866,
+        "time_s": 6.4
+      },
+      {
+        "id": "fb_batch_5.json_39",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 825,
+        "time_s": 6.6
+      },
+      {
+        "id": "fb_batch_10.json_42",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 1064,
+        "time_s": 8.9
+      },
+      {
+        "id": "fb_batch_2.json_27",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 665,
+        "time_s": 5.5
+      },
+      {
+        "id": "fb_batch_15.json_28",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 1710,
+        "time_s": 7.0
+      },
+      {
+        "id": "fb_batch_9.json_40",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 947,
+        "time_s": 8.6
+      },
+      {
+        "id": "fb_batch_8.json_39",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 831,
+        "time_s": 12.4
+      },
+      {
+        "id": "fb_batch_11.json_15",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1022,
+        "time_s": 5.1
+      },
+      {
+        "id": "fb_batch_16.json_5",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1766,
+        "time_s": 7.2
+      },
+      {
+        "id": "fb_batch_2.json_43",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 702,
+        "time_s": 6.8
+      },
+      {
+        "id": "fb_batch_7.json_46",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 890,
+        "time_s": 5.9
+      },
+      {
+        "id": "fb_batch_4.json_17",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 738,
+        "time_s": 5.9
+      },
+      {
+        "id": "fb_batch_1.json_9",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 608,
+        "time_s": 4.5
+      },
+      {
+        "id": "fb_batch_14.json_3",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1470,
+        "time_s": 6.8
+      },
+      {
+        "id": "fb_batch_14.json_36",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1712,
+        "time_s": 5.2
+      },
+      {
+        "id": "fb_batch_12.json_44",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1158,
+        "time_s": 7.0
+      },
+      {
+        "id": "fb_batch_7.json_38",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 878,
+        "time_s": 7.0
+      },
+      {
+        "id": "fb_batch_9.json_27",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 984,
+        "time_s": 7.7
+      },
+      {
+        "id": "fb_batch_2.json_41",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 690,
+        "time_s": 5.2
+      },
+      {
+        "id": "fb_batch_7.json_37",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 834,
+        "time_s": 5.7
+      },
+      {
+        "id": "fb_batch_3.json_14",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 664,
+        "time_s": 4.4
+      },
+      {
+        "id": "fb_batch_3.json_5",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 681,
+        "time_s": 6.3
+      },
+      {
+        "id": "fb_batch_6.json_46",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 825,
+        "time_s": 6.4
+      },
+      {
+        "id": "fb_batch_6.json_1",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 886,
+        "time_s": 5.4
+      },
+      {
+        "id": "fb_batch_12.json_8",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1070,
+        "time_s": 6.9
+      },
+      {
+        "id": "fb_batch_8.json_15",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 826,
+        "time_s": 9.5
+      },
+      {
+        "id": "fb_batch_10.json_30",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1072,
+        "time_s": 7.0
+      },
+      {
+        "id": "fb_batch_4.json_19",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 736,
+        "time_s": 8.8
+      },
+      {
+        "id": "fb_batch_16.json_16",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1746,
+        "time_s": 9.6
+      },
+      {
+        "id": "fb_batch_5.json_9",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 809,
+        "time_s": 8.7
+      },
+      {
+        "id": "fb_batch_1.json_21",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 637,
+        "time_s": 6.0
+      },
+      {
+        "id": "fb_batch_9.json_34",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 998,
+        "time_s": 6.3
+      },
+      {
+        "id": "fb_batch_11.json_23",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1071,
+        "time_s": 4.7
+      },
+      {
+        "id": "fb_batch_5.json_4",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 821,
+        "time_s": 5.7
+      },
+      {
+        "id": "fb_batch_4.json_29",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 819,
+        "time_s": 5.1
+      },
+      {
+        "id": "fb_batch_4.json_6",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 781,
+        "time_s": 8.0
+      },
+      {
+        "id": "fb_batch_16.json_40",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1900,
+        "time_s": 6.0
+      },
+      {
+        "id": "fb_batch_3.json_30",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 726,
+        "time_s": 6.1
+      },
+      {
+        "id": "fb_batch_9.json_2",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 991,
+        "time_s": 6.6
+      },
+      {
+        "id": "fb_batch_6.json_3",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 859,
+        "time_s": 6.6
+      },
+      {
+        "id": "fb_batch_8.json_17",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 843,
+        "time_s": 7.7
+      },
+      {
+        "id": "fb_batch_8.json_18",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 885,
+        "time_s": 5.7
+      },
+      {
+        "id": "fb_batch_3.json_47",
+        "expected": true,
+        "predicted": false,
+        "correct": false,
+        "tokens": 748,
+        "time_s": 8.2
+      },
+      {
+        "id": "fb_batch_1.json_34",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 618,
+        "time_s": 5.2
+      },
+      {
+        "id": "fb_batch_11.json_6",
+        "expected": false,
+        "predicted": false,
+        "correct": true,
+        "tokens": 1047,
+        "time_s": 7.8
+      }
+    ]
+  }
+]
