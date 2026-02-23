@@ -196,6 +196,9 @@ def run_faithfulness_benchmark(
             tokens = result.judge_cost.total_tokens if result.judge_cost else 0
             total_tokens += tokens
 
+            # RPM control: ~8 requests per minute max
+            time.sleep(7.5)
+
             if verbose and not correct:
                 print(f"  ✗ [{i+1}/{len(samples)}] id={sample['id']} "
                       f"expected={expected} got={predicted_faithful} ({tokens}tok, {elapsed:.1f}s)")
