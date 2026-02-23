@@ -1,6 +1,6 @@
 # agent-eval 🧪
 
-![version](https://img.shields.io/badge/version-0.4.0-blue)
+![version](https://img.shields.io/badge/version-0.4.2-blue)
 ![deps](https://img.shields.io/badge/dependencies-0-brightgreen)
 ![python](https://img.shields.io/badge/python-3.8%2B-3776AB)
 
@@ -284,6 +284,28 @@ Standard OpenAI chat messages + optional metadata:
 | Fully local | Partial | No | No | **Yes** (deterministic) |
 | Judge cost tracking | No | No | No | **Yes** |
 | Zero-dep LLM judge | No | No | No | **Yes** (urllib) |
+
+## Benchmark Results
+
+We evaluate our faithfulness judge against **FaithBench** (Bao et al., NAACL 2025) — a human-annotated benchmark of 750 challenging summarization hallucinations where SOTA detectors disagree.
+
+### Faithfulness Judge on FaithBench (100 samples, v0.4.2)
+
+| Judge Model | Accuracy | F1 | Cohen's κ | TP | FP | FN |
+|-------------|----------|------|-----------|-----|-----|-----|
+| **Claude Sonnet 4.6** | **71%** | **0.688** | **0.424** | 32 | 20 | 9 |
+| DeepSeek v3.2 | 67% | 0.459 | 0.260 | 14 | 6 | 27 |
+| GPT-4o | 59% | 0.0 | 0.0 | 0 | 0 | 41 |
+
+**Key findings:**
+- Cohen's κ = 0.424 (moderate agreement) with Claude Sonnet 4.6 as the judge model
+- FaithBench specifically selects the hardest cases where SOTA detectors disagree — 71% accuracy on adversarial samples is competitive
+- Our single-call prompt approach achieves this at 1/3 the cost of multi-step pipelines (like DeepEval's claim extraction → verification → aggregation)
+- GPT-4o is too strict for faithfulness evaluation (flags everything as unfaithful)
+
+**Prompt methodology:** 4-level NLI-inspired classification (SUPPORTED / CONTRADICTED / FABRICATED / BENIGN), catching both intrinsic hallucinations (subtle meaning distortion) and extrinsic hallucinations (fabricated facts).
+
+> Reproduce: `python benchmarks/run_standard_benchmark.py --dataset faithbench --model claude-sonnet-4-6 --samples 100`
 
 ## License
 
