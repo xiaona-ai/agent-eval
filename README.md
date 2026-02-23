@@ -1,6 +1,6 @@
 # agent-eval 🧪
 
-![version](https://img.shields.io/badge/version-0.3.1-blue)
+![version](https://img.shields.io/badge/version-0.4.0-blue)
 ![deps](https://img.shields.io/badge/dependencies-0-brightgreen)
 ![python](https://img.shields.io/badge/python-3.8%2B-3776AB)
 
@@ -14,7 +14,7 @@ Built by [xiaona-ai](https://x.com/ai_xiaona).
 
 32% of teams say **quality is the #1 barrier** to deploying agents in production. Existing eval tools often need hosted infrastructure or heavy dependency stacks.
 
-agent-eval gives deterministic, rule-based assertions that run locally with zero API calls and zero dependencies.
+agent-eval gives deterministic assertions *and* LLM-as-judge evaluation — all with zero dependencies.
 
 ## Install
 
@@ -24,13 +24,16 @@ pip install agent-eval-lite
 
 ## Features
 
-- Deterministic assertions for tool use, control flow, output, and latency
-- Cost and budget assertions from trace usage + custom pricing
-- Multi-run consistency reports and threshold checks
-- Safety assertions for sensitive data and prompt injection leak patterns
-- CLI support for `show`, `diff`, `stats`, `cost`, `consistency` with JSON output where useful
+- **Deterministic assertions** for tool use, control flow, output, and latency
+- **LLM-as-judge evaluation** (v0.4) — 4 built-in judges + custom G-Eval, zero external deps
+- **Cost tracking** — both for agent traces and judge calls themselves
+- **Consistency reports** — multi-run comparison with threshold checks
+- **Safety assertions** — sensitive data detection and prompt injection leak patterns
+- **CLI** — `show`, `diff`, `stats`, `cost`, `consistency`, `judge` with JSON output
 
 ## Quick Start
+
+### Deterministic Assertions
 
 ```python
 from agent_eval import (
@@ -58,6 +61,91 @@ assert_max_steps(trace, 10)
 assert_final_answer_contains(trace, "sunny")
 ```
 
+### LLM-as-Judge (v0.4.0) 🆕
+
+```python
+from agent_eval import JudgeProvider, judge_goal_completion, judge_faithfulness
+
+# Works with ANY OpenAI-compatible API — zero external dependencies
+provider = JudgeProvider(
+    api_key="your-key",
+    base_url="https://api.openai.com/v1",  # or any compatible endpoint
+    model="gpt-4o",
+)
+
+# Goal completion judge
+result = judge_goal_completion(
+    provider,
+    goal="Find the weather in San Francisco",
+    output="It's 80°F and sunny in SF.",
+)
+print(result.passed)     # True
+print(result.reasoning)  # "The agent directly answered..."
+
+# Faithfulness judge (hallucination detection)
+result = judge_faithfulness(
+    provider,
+    context="The API returned: 80°F, sunny, San Francisco",
+    output="It's 80°F and sunny in SF.",
+)
+print(result.passed)             # True
+print(result.unsupported_claims) # []
+
+# Every judge call tracks its own cost
+print(result.judge_cost.total_tokens)       # 150
+print(result.judge_cost.estimated_cost_usd) # 0.00125 (with pricing table)
+```
+
+### Custom Judge (G-Eval Style)
+
+```python
+from agent_eval import create_custom_judge, Rubric
+
+# Binary (pass/fail)
+conciseness_judge = create_custom_judge(
+    criteria="Response must be concise and under 100 words",
+    binary=True,
+)
+result = conciseness_judge(provider=provider, input="Summarize X", output="X is Y.")
+
+# Likert (1-5 scale) with custom rubric
+helpfulness_judge = create_custom_judge(
+    criteria="How helpful is the response?",
+    evaluation_steps=[
+        "Check if the response addresses the user's question",
+        "Check if actionable steps are provided",
+        "Evaluate tone and clarity",
+    ],
+    rubric=[
+        Rubric(1, "Not helpful at all"),
+        Rubric(3, "Somewhat helpful but missing key info"),
+        Rubric(5, "Extremely helpful and actionable"),
+    ],
+)
+result = helpfulness_judge(provider=provider, input="How do I deploy?", output="Run docker push...")
+print(result.score)      # 0.75 (normalized 0-1)
+print(result.raw_score)  # 4 (original 1-5)
+```
+
+### Trajectory Quality Judge
+
+```python
+from agent_eval import judge_trajectory
+
+trajectory = [
+    {"role": "user", "content": "Book a flight to Tokyo"},
+    {"role": "assistant", "content": "", "tool_calls": [{"function": {"name": "search_flights"}}]},
+    {"role": "tool", "name": "search_flights", "content": "Found 3 flights"},
+    {"role": "assistant", "content": "", "tool_calls": [{"function": {"name": "book_flight"}}]},
+    {"role": "tool", "name": "book_flight", "content": "Booked!"},
+    {"role": "assistant", "content": "Your flight to Tokyo is booked!"},
+]
+
+result = judge_trajectory(provider, trajectory=trajectory)
+print(result.score)      # 0.75-1.0 for efficient trajectories
+print(result.raw_score)  # 4 or 5
+```
+
 Works with pytest:
 
 ```python
@@ -66,6 +154,12 @@ def test_weather_agent():
     assert_tool_called(trace, "get_weather")
     assert_final_answer_contains(trace, "SF")
     assert_max_steps(trace, 5)
+
+def test_agent_quality():
+    trace = run_my_agent("What's the weather in SF?")
+    provider = JudgeProvider(api_key=os.environ["JUDGE_API_KEY"])
+    result = judge_goal_completion(provider, goal="Get SF weather", output=trace.final_response.text_content)
+    assert result.success
 ```
 
 ## Assertions
@@ -97,7 +191,7 @@ def test_weather_agent():
 |-----------|---------------|
 | `assert_latency(trace, max_seconds=5.0)` | Total latency within bounds |
 
-### Cost and Budget (v0.3.0)
+### Cost and Budget (v0.3)
 | Assertion | What it checks |
 |-----------|---------------|
 | `assert_total_tokens(trace, max_tokens)` | Total usage tokens within budget |
@@ -105,71 +199,53 @@ def test_weather_agent():
 | `assert_tokens_per_step(trace, max_avg)` | Avg tokens per assistant step |
 | `assert_cost_efficiency(trace, max_cost_per_tool_call, pricing)` | Cost per tool call |
 
-```python
-from agent_eval import Trace, assert_total_tokens, assert_total_cost
-
-pricing = {"gpt-4o": {"input": 2.5, "output": 10.0}}  # $/1M tokens
-trace = Trace.from_jsonl("run.jsonl")
-
-assert_total_tokens(trace, max_tokens=5000)
-assert_total_cost(trace, max_usd=0.05, pricing=pricing, strict=True)
-```
-
-### Consistency (v0.3.0)
+### Consistency (v0.3)
 | API | What it checks |
 |-----|----------------|
 | `ConsistencyReport(traces)` | Pairwise consistency metrics |
 | `assert_consistency(...)` | Threshold checks for tool/answer/step variance |
 
-```python
-from agent_eval import Trace, ConsistencyReport, assert_consistency
-
-traces = [Trace.from_jsonl(p) for p in ["run1.jsonl", "run2.jsonl", "run3.jsonl"]]
-report = ConsistencyReport(traces)
-print(report.summary())
-
-assert_consistency(
-    traces,
-    min_tool_consistency=0.8,
-    min_answer_consistency=0.7,
-    max_step_variance=1.0,
-)
-```
-
-### Safety (v0.3.0)
+### Safety (v0.3)
 | Assertion | What it checks |
 |-----------|---------------|
 | `assert_no_sensitive_data(trace, patterns, roles=None)` | Detects regex matches in message content |
 | `assert_no_injection_leak(trace, system_prompt, min_chunk_words=5)` | Detects verbatim system prompt leakage |
 
-```python
-from agent_eval import assert_no_sensitive_data, assert_no_injection_leak
+### LLM-as-Judge (v0.4) 🆕
+| Judge | What it evaluates | Output |
+|-------|-------------------|--------|
+| `judge_goal_completion(provider, goal, output)` | Did the agent complete the goal? | pass/fail |
+| `judge_trajectory(provider, trajectory, reference=)` | Trajectory quality and efficiency | 1-5 score |
+| `judge_faithfulness(provider, context, output)` | Is the output grounded in context? | pass/fail + claims |
+| `judge_reasoning(provider, reasoning, expected=)` | Reasoning chain quality | 1-5 score |
+| `create_custom_judge(criteria, steps=, rubric=, binary=)` | Custom G-Eval criteria | configurable |
 
-assert_no_sensitive_data(trace, [
-    r"\d{3}-\d{2}-\d{4}",        # SSN
-    r"\b(?:\d[ -]*?){13,16}\b",  # card-like numbers
-])
-assert_no_injection_leak(trace, system_prompt, min_chunk_words=5)
-```
+**Key differentiators:**
+- 🏆 **Zero dependencies** — uses `urllib.request` from stdlib (competitors need openai/httpx/langchain)
+- 🏆 **Judge cost tracking** — every judge call reports token usage and estimated cost
+- 🏆 **Any provider** — works with any OpenAI-compatible API endpoint
+- CoT evaluation steps and rubric anchoring (G-Eval methodology)
 
 ## CLI
 
 ```bash
-agent-eval show run.jsonl
-agent-eval show run.jsonl --json
+# Trace inspection
+agent-eval show run.jsonl [--json]
+agent-eval diff baseline.jsonl current.jsonl [--json] [--fail-on-regression]
+agent-eval stats run.jsonl [--json]
 
-agent-eval diff baseline.jsonl current.jsonl
-agent-eval diff baseline.jsonl current.jsonl --json --fail-on-regression
-
-agent-eval stats run.jsonl
-agent-eval stats run.jsonl --json
-
-agent-eval cost run.jsonl --max-tokens 5000 --max-usd 0.05 --pricing pricing.json --strict
+# Cost & consistency
+agent-eval cost run.jsonl --max-tokens 5000 --max-usd 0.05 --pricing pricing.json
 agent-eval consistency run1.jsonl run2.jsonl run3.jsonl --min-tool-consistency 0.8
+
+# LLM-as-judge (v0.4) 🆕
+agent-eval judge run.jsonl --judge-type goal --api-key $KEY --model gpt-4o
+agent-eval judge run.jsonl --judge-type trajectory --api-key $KEY --json
+agent-eval judge run.jsonl --judge-type faithfulness --context "ground truth text"
+agent-eval judge run.jsonl --judge-type custom --criteria "Response is helpful" --binary
 ```
 
-`cost` always prints token/cost summary and exits `1` on failed thresholds.
-`consistency` always prints `ConsistencyReport.summary()` and exits `1` on failed thresholds.
+Set `JUDGE_API_KEY` env var or pass `--api-key`. Use `--base-url` for non-OpenAI providers.
 
 ## Trace Format
 
@@ -177,39 +253,37 @@ Standard OpenAI chat messages + optional metadata:
 
 ```jsonl
 {"role":"user","content":"What's the weather?","timestamp":"2026-02-23T10:00:00Z"}
-{"role":"assistant","tool_calls":[{"function":{"name":"get_weather","arguments":"{\"city\":\"SF\"}"}}],"latency_ms":500}
+{"role":"assistant","tool_calls":[{"function":{"name":"get_weather","arguments":"{\"city\":\"SF\"}"}}],"latency_ms":500,"usage":{"prompt_tokens":100,"completion_tokens":50,"model":"gpt-4o"}}
 {"role":"tool","name":"get_weather","content":"80°F sunny"}
 {"role":"assistant","content":"It's 80°F and sunny.","latency_ms":300}
 ```
 
-Load from file: `Trace.from_jsonl("run.jsonl")`  
-Save to file: `trace.to_jsonl("run.jsonl")`
+## Architecture
 
-## Three-Layer Architecture
-
-**Layer 1 (available now): Deterministic assertions** for tool behavior, output, latency, cost, consistency, and safety.
-
-**Layer 2 (planned): Statistical metrics** for drift and similarity over time.
-
-**Layer 3 (planned): LLM-as-Judge** for optional semantic scoring.
+| Layer | What | Dependencies |
+|-------|------|-------------|
+| **Deterministic** (v0.1-0.3) | Assertions, cost, consistency, safety | Zero |
+| **LLM-as-Judge** (v0.4) | Semantic evaluation via any LLM API | Zero (urllib) |
+| **Statistical** (planned) | Drift detection, similarity metrics | Zero |
 
 ## Design Philosophy
 
-- **Zero dependencies**: stdlib only
+- **Zero dependencies**: stdlib only — even LLM judges use urllib
 - **Framework-agnostic**: works with any OpenAI-style trace
 - **Deterministic first**: assertions before judges
 - **Local-first**: no required data upload
-- **File-first**: JSONL traces, version-controllable
+- **Cost-aware**: track both agent and evaluation costs
 
 ## Comparison
 
-| | DeepEval | agentevals | **agent-eval** |
-|---|---------|------------|----------------|
-| Dependencies | 40+ (torch...) | openai, langchain | **0** |
-| Needs API | Yes | Yes (OpenAI) | **No** (deterministic layers) |
-| Framework lock-in | No | LangChain | **No** |
-| Fully local | Partial | Partial | **Yes** |
-| Agent-specific | Partial | Yes | **Yes** |
+| | DeepEval | agentevals | judges | **agent-eval** |
+|---|---------|------------|--------|----------------|
+| Dependencies | 40+ (torch...) | langchain | openai+instructor | **0** |
+| Needs API | Yes | Yes | Yes | **Optional** (judge only) |
+| Framework lock-in | No | LangChain | No | **No** |
+| Fully local | Partial | No | No | **Yes** (deterministic) |
+| Judge cost tracking | No | No | No | **Yes** |
+| Zero-dep LLM judge | No | No | No | **Yes** (urllib) |
 
 ## License
 
