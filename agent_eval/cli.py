@@ -79,10 +79,10 @@ def _print_trace(trace: Trace):
                 args_str = json.dumps(args, ensure_ascii=False) if args else ""
                 print(f"{icon} {name}({args_str}){latency}")
         elif m.is_tool_response:
-            content = (m.content or "")[:100]
+            content = m.text_content[:100]
             print(f"{icon} [{m.name}] → {content}")
         else:
-            content = (m.content or "")[:200]
+            content = m.text_content[:200]
             print(f"{icon} {content}{latency}")
 
 
@@ -96,8 +96,8 @@ def _print_stats(trace: Trace):
     if trace.total_latency_ms:
         print(f"Total latency: {trace.total_latency_ms:.0f}ms")
     final = trace.final_response
-    if final and final.content:
-        print(f"Final answer:  {final.content[:150]}...")
+    if final and final.text_content:
+        print(f"Final answer:  {final.text_content[:150]}...")
 
 
 if __name__ == "__main__":

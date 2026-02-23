@@ -24,17 +24,33 @@ def _get_model(msg) -> Optional[str]:
     return msg.metadata.get("model")
 
 
+def _parse_int(value: Any, field: str) -> int:
+    """Parse an integer usage field and raise EvalFailure on malformed values."""
+    try:
+        return int(value)
+    except (TypeError, ValueError) as exc:
+        raise EvalFailure(
+            "usage_malformed",
+            f"Usage field '{field}' must be an integer-compatible value, got {value!r}.",
+            {"field": field, "value": value},
+        ) from exc
+
+
 def _total_tokens_from_usage(usage: dict) -> int:
     """Get total tokens from a usage dict."""
     total = usage.get("total_tokens")
     if total is not None:
-        return int(total)
+        return _parse_int(total, "total_tokens")
     prompt = usage.get("prompt_tokens", 0) or 0
     completion = usage.get("completion_tokens", 0) or 0
-    return int(prompt) + int(completion)
+    return _parse_int(prompt, "prompt_tokens") + _parse_int(completion, "completion_tokens")
 
 
-def _compute_cost(msg, pricing: Dict[str, Dict[str, float]]) -> float:
+def _compute_cost(
+    msg,
+    pricing: Dict[str, Dict[str, float]],
+    strict: bool = False,
+) -> float:
     """Compute cost for a single message given pricing table.
 
     pricing format: {"model-name": {"input": price_per_1M, "output": price_per_1M}}
@@ -45,11 +61,17 @@ def _compute_cost(msg, pricing: Dict[str, Dict[str, float]]) -> float:
 
     model = _get_model(msg)
     if not model or model not in pricing:
+        if strict:
+            raise EvalFailure(
+                "total_cost_unknown_model",
+                f"Model {model!r} missing from pricing table in strict mode.",
+                {"model": model, "known_models": sorted(pricing.keys())},
+            )
         return 0.0
 
     rates = pricing[model]
-    prompt = usage.get("prompt_tokens", 0) or 0
-    completion = usage.get("completion_tokens", 0) or 0
+    prompt = _parse_int(usage.get("prompt_tokens", 0) or 0, "prompt_tokens")
+    completion = _parse_int(usage.get("completion_tokens", 0) or 0, "completion_tokens")
 
     input_cost = (prompt / 1_000_000) * rates.get("input", 0)
     output_cost = (completion / 1_000_000) * rates.get("output", 0)
@@ -66,9 +88,13 @@ def _sum_tokens(trace: Trace) -> int:
     return total
 
 
-def _sum_cost(trace: Trace, pricing: Dict[str, Dict[str, float]]) -> float:
+def _sum_cost(
+    trace: Trace,
+    pricing: Dict[str, Dict[str, float]],
+    strict: bool = False,
+) -> float:
     """Sum cost across all messages."""
-    return sum(_compute_cost(m, pricing) for m in trace.messages)
+    return sum(_compute_cost(m, pricing, strict=strict) for m in trace.messages)
 
 
 def assert_total_tokens(trace: Trace, max_tokens: int):
@@ -92,6 +118,7 @@ def assert_total_cost(
     trace: Trace,
     max_usd: float,
     pricing: Dict[str, Dict[str, float]],
+    strict: bool = False,
 ):
     """Assert total cost is within budget.
 
@@ -101,10 +128,12 @@ def assert_total_cost(
         pricing: Model pricing table, e.g.
             {"gpt-4o": {"input": 2.5, "output": 10.0}}
             Prices are per 1M tokens.
+        strict: If True, raise EvalFailure when a message has a model missing
+            from pricing. If False, unknown models contribute $0.
 
     Raises EvalFailure if total cost exceeds max_usd.
     """
-    total = _sum_cost(trace, pricing)
+    total = _sum_cost(trace, pricing, strict=strict)
     if total > max_usd:
         raise EvalFailure(
             "total_cost",
@@ -136,6 +165,7 @@ def assert_cost_efficiency(
     trace: Trace,
     max_cost_per_tool_call: float,
     pricing: Dict[str, Dict[str, float]],
+    strict: bool = False,
 ):
     """Assert cost per tool call is within limit.
 
@@ -146,7 +176,7 @@ def assert_cost_efficiency(
     if not tool_calls:
         return  # No tool calls, skip
 
-    total_cost = _sum_cost(trace, pricing)
+    total_cost = _sum_cost(trace, pricing, strict=strict)
     num_calls = sum(len(m.tool_names) for m in tool_calls)
     if num_calls == 0:
         return

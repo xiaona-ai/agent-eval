@@ -90,7 +90,7 @@ class ConsistencyReport:
             answers = []
             for t in self._traces:
                 final = t.final_response
-                answers.append(final.content if final and final.content else "")
+                answers.append(final.text_content if final else "")
             self._answer_consistency = _pairwise_avg(
                 answers,
                 lambda a, b: _jaccard_similarity(a, b)

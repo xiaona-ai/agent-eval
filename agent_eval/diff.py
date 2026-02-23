@@ -3,7 +3,6 @@
 Compare two traces to detect behavioral changes — useful for CI/CD
 regression testing after prompt/model changes.
 """
-import json
 from typing import Dict, List, Optional, Tuple
 
 from .trace import Trace
@@ -57,6 +56,10 @@ class TraceDiff:
         for oc in self.output_changes:
             if oc["type"] == "final_answer_changed":
                 lines.append(f"📝 Final answer changed (similarity: {oc.get('similarity', 0):.0%})")
+            elif oc["type"] == "final_answer_missing_in_current":
+                lines.append("❌ Final answer missing in current trace.")
+            elif oc["type"] == "final_answer_added_in_current":
+                lines.append("🆕 Final answer added in current trace.")
 
         for pc in self.performance_changes:
             if pc["type"] == "latency_increase":
@@ -125,16 +128,33 @@ def _diff_output(baseline: Trace, current: Trace, result: TraceDiff):
     """Compare final outputs."""
     base_final = baseline.final_response
     curr_final = current.final_response
+    base_text = base_final.text_content if base_final else ""
+    curr_text = curr_final.text_content if curr_final else ""
+    has_base = bool(base_text.strip())
+    has_curr = bool(curr_text.strip())
 
-    if base_final and curr_final and base_final.content and curr_final.content:
-        sim = _jaccard(base_final.content, curr_final.content)
-        if sim < 0.9:
-            result.output_changes.append({
-                "type": "final_answer_changed",
-                "similarity": sim,
-                "before_preview": base_final.content[:100],
-                "after_preview": curr_final.content[:100],
-            })
+    # Both traces have no final answer text: no output diff.
+    if not has_base and not has_curr:
+        return
+
+    # One side has a final answer and the other does not.
+    if has_base != has_curr:
+        result.output_changes.append({
+            "type": "final_answer_missing_in_current" if has_base else "final_answer_added_in_current",
+            "before_preview": base_text[:100],
+            "after_preview": curr_text[:100],
+        })
+        return
+
+    # Both present: compare similarity.
+    sim = _jaccard(base_text, curr_text)
+    if sim < 0.9:
+        result.output_changes.append({
+            "type": "final_answer_changed",
+            "similarity": sim,
+            "before_preview": base_text[:100],
+            "after_preview": curr_text[:100],
+        })
 
 
 def _diff_performance(baseline: Trace, current: Trace, result: TraceDiff):

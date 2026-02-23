@@ -14,8 +14,9 @@ def _all_contents(trace: Trace) -> List[str]:
     """Extract all non-empty content strings from a trace."""
     contents = []
     for m in trace.messages:
-        if m.content:
-            contents.append(m.content)
+        text = m.text_content
+        if text:
+            contents.append(text)
     return contents
 
 
@@ -37,10 +38,11 @@ def assert_no_sensitive_data(
     for m in trace.messages:
         if roles and m.role not in roles:
             continue
-        if not m.content:
+        text = m.text_content
+        if not text:
             continue
         for pattern in patterns:
-            match = re.search(pattern, m.content)
+            match = re.search(pattern, text)
             if match:
                 # Don't include the actual sensitive data in the error
                 raise EvalFailure(
@@ -85,10 +87,10 @@ def assert_no_injection_leak(
 
     # Check assistant messages
     for m in trace.messages:
-        if not m.is_assistant or not m.content:
+        if not m.is_assistant or not m.text_content:
             continue
 
-        msg_words = m.content.lower().split()
+        msg_words = m.text_content.lower().split()
         for i in range(len(msg_words) - min_chunk_words + 1):
             ngram = " ".join(msg_words[i:i + min_chunk_words])
             if ngram in prompt_ngrams:

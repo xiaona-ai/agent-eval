@@ -4,7 +4,6 @@ A Trace is a sequence of Messages representing an agent's execution.
 Messages follow the OpenAI chat format (role/content/tool_calls/name).
 """
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -17,7 +16,7 @@ class Message:
 
     def __init__(self, data: dict):
         self.role: str = data.get("role", "")
-        self.content: Optional[str] = data.get("content")
+        self.content: Any = data.get("content")
         self.name: Optional[str] = data.get("name")  # tool name for role=tool
         self.tool_calls: Optional[List[dict]] = data.get("tool_calls")
         self.tool_call_id: Optional[str] = data.get("tool_call_id")
@@ -41,6 +40,34 @@ class Message:
     @property
     def is_user(self) -> bool:
         return self.role == "user"
+
+    @property
+    def text_content(self) -> str:
+        """Normalized text view of content across str/list/dict payloads."""
+        return self._extract_text(self.content)
+
+    @classmethod
+    def _extract_text(cls, value: Any) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            return value
+        if isinstance(value, list):
+            parts = []
+            for item in value:
+                text = cls._extract_text(item)
+                if text:
+                    parts.append(text)
+            return " ".join(parts)
+        if isinstance(value, dict):
+            for key in ("text", "content", "value"):
+                if key in value:
+                    return cls._extract_text(value.get(key))
+            try:
+                return json.dumps(value, ensure_ascii=False, sort_keys=True)
+            except (TypeError, ValueError):
+                return str(value)
+        return str(value)
 
     @property
     def tool_names(self) -> List[str]:
@@ -93,8 +120,9 @@ class Message:
 
     def __repr__(self) -> str:
         content_preview = ""
-        if self.content:
-            content_preview = self.content[:50] + ("..." if len(self.content) > 50 else "")
+        text = self.text_content
+        if text:
+            content_preview = text[:50] + ("..." if len(text) > 50 else "")
         elif self.tool_calls:
             content_preview = f"tool_calls={self.tool_names}"
         return f"Message(role={self.role!r}, {content_preview})"

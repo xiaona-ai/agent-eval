@@ -55,7 +55,7 @@ def assert_tool_called(
         matched = False
         for m in calls:
             actual_args = m.tool_args(tool_name)
-            if actual_args and _dict_contains(actual_args, args):
+            if actual_args is not None and _dict_contains(actual_args, args):
                 matched = True
                 break
         if not matched:
@@ -136,13 +136,13 @@ def assert_final_answer_contains(
 ):
     """Assert the final response contains specific text."""
     final = trace.final_response
-    if final is None or final.content is None:
+    content = final.text_content if final else ""
+    if not content.strip():
         raise EvalFailure(
             "final_answer_contains",
             "No final assistant response found in trace.",
         )
 
-    content = final.content
     check_text = text
     if not case_sensitive:
         content = content.lower()
@@ -152,23 +152,24 @@ def assert_final_answer_contains(
         raise EvalFailure(
             "final_answer_contains",
             f"Final answer does not contain '{text}'. "
-            f"Got: '{final.content[:200]}'",
-            {"expected_text": text, "actual": final.content[:500]},
+            f"Got: '{content[:200]}'",
+            {"expected_text": text, "actual": content[:500]},
         )
 
 
 def assert_final_answer_matches(trace: Trace, pattern: str):
     """Assert the final response matches a regex pattern."""
     final = trace.final_response
-    if final is None or final.content is None:
+    content = final.text_content if final else ""
+    if not content.strip():
         raise EvalFailure("final_answer_matches", "No final assistant response found.")
 
-    if not re.search(pattern, final.content):
+    if not re.search(pattern, content):
         raise EvalFailure(
             "final_answer_matches",
             f"Final answer does not match pattern '{pattern}'. "
-            f"Got: '{final.content[:200]}'",
-            {"pattern": pattern, "actual": final.content[:500]},
+            f"Got: '{content[:200]}'",
+            {"pattern": pattern, "actual": content[:500]},
         )
 
 
@@ -176,7 +177,7 @@ def assert_no_empty_response(trace: Trace):
     """Assert no assistant message has empty/null content (excluding tool calls)."""
     for i, m in enumerate(trace.messages):
         if m.is_assistant and not m.is_tool_call:
-            if not m.content or not m.content.strip():
+            if not m.text_content.strip():
                 raise EvalFailure(
                     "no_empty_response",
                     f"Empty assistant response at message index {i}.",
@@ -207,10 +208,14 @@ def assert_no_repetition(trace: Trace, threshold: float = 0.85):
 
     Uses simple token overlap ratio (Jaccard similarity).
     """
-    responses = [m for m in trace.messages if m.is_assistant and not m.is_tool_call and m.content]
+    responses = [
+        m.text_content
+        for m in trace.messages
+        if m.is_assistant and not m.is_tool_call and m.text_content.strip()
+    ]
 
     for i in range(1, len(responses)):
-        sim = _jaccard_similarity(responses[i - 1].content, responses[i].content)
+        sim = _jaccard_similarity(responses[i - 1], responses[i])
         if sim >= threshold:
             raise EvalFailure(
                 "no_repetition",
@@ -230,7 +235,14 @@ def assert_tool_call_efficiency(trace: Trace, max_redundant: int = 1):
     for m in trace.tool_calls:
         for name in m.tool_names:
             args = m.tool_args(name)
-            key = (name, json.dumps(args, sort_keys=True) if args else "")
+            try:
+                key = (name, json.dumps(args, sort_keys=True) if args else "")
+            except TypeError as exc:
+                raise EvalFailure(
+                    "tool_call_efficiency",
+                    f"Tool '{name}' has non-serializable arguments.",
+                    {"tool": name, "args_type": type(args).__name__},
+                ) from exc
             if key in seen:
                 redundant += 1
             else:
