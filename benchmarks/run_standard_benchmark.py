@@ -162,6 +162,7 @@ def run_faithfulness_benchmark(
     samples: list[dict],
     dataset_name: str,
     verbose: bool = True,
+    mode: str = "fast",
 ) -> dict:
     """Run faithfulness judge on a list of samples, compute metrics."""
     y_true = []
@@ -182,6 +183,7 @@ def run_faithfulness_benchmark(
                 provider,
                 context=sample["context"],
                 output=sample["output"],
+                mode=mode,
             )
             elapsed = time.time() - t
             total_time += elapsed
@@ -197,7 +199,9 @@ def run_faithfulness_benchmark(
             total_tokens += tokens
 
             # RPM control: ~8 requests per minute max
-            time.sleep(7.5)
+            # thorough mode uses 2 API calls per sample
+            delay = 15.0 if mode == "thorough" else 7.5
+            time.sleep(delay)
 
             if verbose and not correct:
                 print(f"  ✗ [{i+1}/{len(samples)}] id={sample['id']} "
@@ -264,6 +268,8 @@ def main():
     parser.add_argument("--samples", type=int, default=100, help="Max samples per dataset")
     parser.add_argument("--api-key", default=os.environ.get("SORAI_API_KEY", ""))
     parser.add_argument("--base-url", default="https://newapi.sorai.me/v1")
+    parser.add_argument("--mode", choices=["fast", "thorough"], default="fast",
+                        help="Faithfulness mode: fast (single-call) or thorough (multi-step)")
     parser.add_argument("--output", default="benchmark_standard_results.json")
     parser.add_argument("--verbose", action="store_true", default=True)
     args = parser.parse_args()
@@ -281,7 +287,7 @@ def main():
 
     print("=" * 60)
     print(f"  agent-eval-lite — Standard Benchmark Suite")
-    print(f"  Model: {args.model} | Samples/dataset: {args.samples}")
+    print(f"  Model: {args.model} | Samples/dataset: {args.samples} | Mode: {args.mode}")
     print("=" * 60)
 
     if args.dataset in ("faithbench", "all"):
@@ -290,7 +296,7 @@ def main():
         pos = sum(1 for s in fb_samples if s["expected_faithful"])
         neg = len(fb_samples) - pos
         print(f"  Loaded {len(fb_samples)} samples (faithful={pos}, hallucinated={neg})")
-        result = run_faithfulness_benchmark(provider, fb_samples, "FaithBench", args.verbose)
+        result = run_faithfulness_benchmark(provider, fb_samples, "FaithBench", args.verbose, mode=args.mode)
         all_results.append(result)
 
     if args.dataset in ("halubench", "all"):
@@ -299,7 +305,7 @@ def main():
         pos = sum(1 for s in hb_samples if s["expected_faithful"])
         neg = len(hb_samples) - pos
         print(f"  Loaded {len(hb_samples)} samples (faithful={pos}, hallucinated={neg})")
-        result = run_faithfulness_benchmark(provider, hb_samples, "HaluBench", args.verbose)
+        result = run_faithfulness_benchmark(provider, hb_samples, "HaluBench", args.verbose, mode=args.mode)
         all_results.append(result)
 
     # Summary
