@@ -327,3 +327,78 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ── JudgeBench Loader (via HuggingFace API) ─────────────
+
+def load_judgebench(max_samples: Optional[int] = None, split: str = "gpt", seed: int = 42) -> list[dict]:
+    """Load JudgeBench pairwise comparison samples.
+
+    Args:
+        max_samples: Max samples to load.
+        split: "gpt" (350 samples) or "claude" (270 samples).
+        seed: Random seed for sampling.
+
+    Returns:
+        List of dicts with prompt, response_a, response_b, expected_winner.
+    """
+    import urllib.request
+
+    samples = []
+    batch_size = 100
+    offset = 0
+
+    while True:
+        url = (f"https://datasets-server.huggingface.co/rows?"
+               f"dataset=ScalerLab%2FJudgeBench&config=default&split={split}"
+               f"&offset={offset}&length={batch_size}")
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read())
+        except Exception as e:
+            print(f"  JudgeBench fetch error at offset {offset}: {e}")
+            break
+
+        rows = data.get("rows", [])
+        if not rows:
+            break
+
+        for r in rows:
+            row = r["row"]
+            label = row.get("label", "")
+            # Label format: "A>B" or "B>A"
+            if "A>B" in label:
+                expected_a_wins = True
+            elif "B>A" in label:
+                expected_a_wins = False
+            else:
+                continue  # Skip ambiguous labels
+
+            samples.append({
+                "id": row.get("pair_id", f"jb_{offset}"),
+                "source": row.get("source", ""),
+                "prompt": row.get("question", ""),
+                "response_a": row.get("response_A", ""),
+                "response_b": row.get("response_B", ""),
+                "expected_a_wins": expected_a_wins,
+            })
+
+        offset += batch_size
+        if len(rows) < batch_size:
+            break
+
+    if max_samples and max_samples < len(samples):
+        rng = random.Random(seed)
+        # Stratified: maintain A>B vs B>A ratio
+        a_wins = [s for s in samples if s["expected_a_wins"]]
+        b_wins = [s for s in samples if not s["expected_a_wins"]]
+        ratio = len(a_wins) / len(samples) if samples else 0.5
+        n_a = max(1, int(max_samples * ratio))
+        n_b = max_samples - n_a
+        rng.shuffle(a_wins)
+        rng.shuffle(b_wins)
+        samples = a_wins[:n_a] + b_wins[:n_b]
+        rng.shuffle(samples)
+
+    return samples

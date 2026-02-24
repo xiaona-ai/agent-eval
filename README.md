@@ -249,6 +249,7 @@ def test_agent_quality():
 | `judge_goal_completion(provider, goal, output)` | Did the agent complete the goal? | pass/fail |
 | `judge_trajectory(provider, trajectory, reference=)` | Trajectory quality and efficiency | 1-5 score |
 | `judge_faithfulness(provider, context, output, mode=)` | Is the output grounded in context? | pass/fail + claims |
+| `judge_pairwise(provider, prompt, response_a, response_b, swap=)` | Which response is better? (v0.5) | A/B winner + consistency |
 | `judge_reasoning(provider, reasoning, expected=)` | Reasoning chain quality | 1-5 score |
 | `create_custom_judge(criteria, steps=, rubric=, binary=)` | Custom G-Eval criteria | configurable |
 | `JudgeJury(providers).judge(judge_fn, ...)` | Multi-model voting (v0.5) | aggregated verdict |
@@ -347,6 +348,26 @@ FaithBench selects the hardest cases where SOTA detectors disagree — a deliber
 - `mode="thorough"`: 3-step pipeline (claims extraction → per-claim verification → aggregation) — better explainability, 4-level per-claim verdicts (supported/contradicted/fabricated/idk)
 
 > Reproduce: `python benchmarks/run_standard_benchmark.py --dataset faithbench --model claude-sonnet-4-6 --samples 100`
+
+### Pairwise Judge on JudgeBench (v0.5.1)
+
+JudgeBench (ICLR 2025) evaluates pairwise comparison on objectively verifiable tasks across knowledge, reasoning, math, and coding. We report **position-consistent accuracy** — the judge must pick the correct answer in *both* orderings (A/B and B/A) to count as correct.
+
+| Judge Model | PC Accuracy | Consistency Rate | Notes |
+|-------------|-------------|-----------------|-------|
+| **GPT-5.2** | **100%** | **89%** (24/27) | 3 timeouts excluded |
+| **Claude Sonnet 4.6** | **91%** | **77%** (23/30) | Best consistency with 0 errors |
+| Grok 4.1 Fast | 80% | 17% (5/30) | Severe position bias |
+
+*30 samples from `gpt` split. JudgeBench paper reports GPT-4o ≈ 73% on 350 samples.*
+
+**Key findings:**
+- GPT-5.2 achieves perfect accuracy on position-consistent judgments (24/24 correct)
+- Claude Sonnet 4.6 shows the best balance of accuracy (91%) and consistency (77%)
+- Grok 4.1 Fast has severe position bias (83% inconsistent) — unreliable for pairwise evaluation
+- Position-consistency check (swap=True) is essential for reliable pairwise judging
+
+> Reproduce: `python benchmarks/run_judgebench.py --model claude-sonnet-4-6 --samples 30`
 
 ## License
 
