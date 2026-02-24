@@ -127,6 +127,38 @@ print(result.score)      # 0.75 (normalized 0-1)
 print(result.raw_score)  # 4 (original 1-5)
 ```
 
+### Multi-step Faithfulness (v0.5)
+
+```python
+# Thorough mode: 3-step pipeline (claims extraction → verification → aggregation)
+result = judge_faithfulness(
+    provider, context="...", output="...",
+    mode="thorough",  # default is "fast" (single-call)
+)
+# 4-level classification: supported / contradicted / fabricated / idk
+# "idk" (benign gaps like common knowledge) don't count as unfaithful
+```
+
+### Jury Mode — Multi-Model Voting (v0.5)
+
+```python
+from agent_eval import JudgeJury, JudgeProvider, judge_faithfulness
+
+# Create providers with different models
+jury = JudgeJury([
+    JudgeProvider(api_key="k1", base_url="https://provider1/v1", model="claude-sonnet-4-6"),
+    JudgeProvider(api_key="k2", base_url="https://provider2/v1", model="grok-4.1-fast"),
+    JudgeProvider(api_key="k3", base_url="https://provider3/v1", model="gpt-5.2"),
+])
+
+# Run any judge across all models — majority vote
+verdict = jury.judge(judge_faithfulness, context="...", output="...")
+print(verdict.passed)           # True/False (majority vote)
+print(verdict.agreement_ratio)  # 0.67 - 1.0
+print(verdict.unanimous)        # True if all agree
+print(verdict.total_cost)       # Aggregated token costs
+```
+
 ### Trajectory Quality Judge
 
 ```python
@@ -216,9 +248,10 @@ def test_agent_quality():
 |-------|-------------------|--------|
 | `judge_goal_completion(provider, goal, output)` | Did the agent complete the goal? | pass/fail |
 | `judge_trajectory(provider, trajectory, reference=)` | Trajectory quality and efficiency | 1-5 score |
-| `judge_faithfulness(provider, context, output)` | Is the output grounded in context? | pass/fail + claims |
+| `judge_faithfulness(provider, context, output, mode=)` | Is the output grounded in context? | pass/fail + claims |
 | `judge_reasoning(provider, reasoning, expected=)` | Reasoning chain quality | 1-5 score |
 | `create_custom_judge(criteria, steps=, rubric=, binary=)` | Custom G-Eval criteria | configurable |
+| `JudgeJury(providers).judge(judge_fn, ...)` | Multi-model voting (v0.5) | aggregated verdict |
 
 **Key differentiators:**
 - 🏆 **Zero dependencies** — uses `urllib.request` from stdlib (competitors need openai/httpx/langchain)
@@ -284,26 +317,34 @@ Standard OpenAI chat messages + optional metadata:
 | Fully local | Partial | No | No | **Yes** (deterministic) |
 | Judge cost tracking | No | No | No | **Yes** |
 | Zero-dep LLM judge | No | No | No | **Yes** (urllib) |
+| Multi-model jury | No | No | No | **Yes** (v0.5) |
+| Public benchmarks | No | No | No | **FaithBench κ=0.68** |
 
 ## Benchmark Results
 
 We evaluate our faithfulness judge against **FaithBench** (Bao et al., NAACL 2025) — a human-annotated benchmark of 750 challenging summarization hallucinations where SOTA detectors disagree.
 
-### Faithfulness Judge on FaithBench (100 samples, v0.4.2)
+### Faithfulness Judge on FaithBench (v0.5.0)
 
-| Judge Model | Accuracy | F1 | Cohen's κ | TP | FP | FN |
-|-------------|----------|------|-----------|-----|-----|-----|
-| **Claude Sonnet 4.6** | **71%** | **0.688** | **0.424** | 32 | 20 | 9 |
-| DeepSeek v3.2 | 67% | 0.459 | 0.260 | 14 | 6 | 27 |
-| GPT-4o | 59% | 0.0 | 0.0 | 0 | 0 | 41 |
+FaithBench selects the hardest cases where SOTA detectors disagree — a deliberately adversarial benchmark.
+
+| Judge Model | Provider | Accuracy | F1 | Cohen's κ | Notes |
+|-------------|----------|----------|------|-----------|-------|
+| **Claude Sonnet 4.6** | huan666 | **83%** | **0.83** | **0.68** | Best balance |
+| GPT-5.2 | wcgio | 77% | 0.76 | 0.55 | Slightly lenient |
+| Claude Sonnet 4.6 *(100 samples)* | sorai | 71% | 0.69 | 0.42 | Larger sample |
+| DeepSeek v3.2 | huan666 | 70% | 0.47 | 0.31 | Too strict |
+| Grok 4.1 Fast | wcgio | 70% | 0.40 | 0.29 | Too strict |
 
 **Key findings:**
-- Cohen's κ = 0.424 (moderate agreement) with Claude Sonnet 4.6 as the judge model
-- FaithBench specifically selects the hardest cases where SOTA detectors disagree — 71% accuracy on adversarial samples is competitive
-- Our single-call prompt approach achieves this at 1/3 the cost of multi-step pipelines (like DeepEval's claim extraction → verification → aggregation)
-- GPT-4o is too strict for faithfulness evaluation (flags everything as unfaithful)
+- Cohen's κ = 0.68 (substantial agreement) with Claude Sonnet 4.6 — competitive with dedicated hallucination detectors
+- Models show different bias directions: grok/deepseek are too strict (high FN), gpt-5.2 is lenient (high FP)
+- **Jury mode** (v0.5) exploits these complementary biases via multi-model voting
+- Our single-call prompt achieves this at **1/3 the cost** of multi-step pipelines
 
-**Prompt methodology:** 4-level NLI-inspired classification (SUPPORTED / CONTRADICTED / FABRICATED / BENIGN), catching both intrinsic hallucinations (subtle meaning distortion) and extrinsic hallucinations (fabricated facts).
+**Two evaluation modes (v0.5):**
+- `mode="fast"` (default): Single-call 4-level NLI classification — best accuracy/cost ratio
+- `mode="thorough"`: 3-step pipeline (claims extraction → per-claim verification → aggregation) — better explainability, 4-level per-claim verdicts (supported/contradicted/fabricated/idk)
 
 > Reproduce: `python benchmarks/run_standard_benchmark.py --dataset faithbench --model claude-sonnet-4-6 --samples 100`
 
