@@ -16,6 +16,7 @@ from agent_eval.judge import (
     judge_trajectory,
     judge_faithfulness,
     judge_reasoning,
+    judge_pairwise,
     create_custom_judge,
     _parse_json_response,
     _format_rubric,
@@ -626,3 +627,65 @@ class TestCodexReviewFixes(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPairwiseJudge(unittest.TestCase):
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_a_wins_no_swap(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_api_response(
+            {"winner": "A", "reasoning": "A is correct", "confidence": "high"}
+        )
+        p = JudgeProvider(api_key="test")
+        result = judge_pairwise(p, prompt="What is 2+2?",
+            response_a="4", response_b="5", swap=False)
+        self.assertTrue(result.passed)
+        self.assertEqual(mock_urlopen.call_count, 1)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_b_wins_no_swap(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_api_response(
+            {"winner": "B", "reasoning": "B is correct", "confidence": "high"}
+        )
+        p = JudgeProvider(api_key="test")
+        result = judge_pairwise(p, prompt="What is 2+2?",
+            response_a="5", response_b="4", swap=False)
+        self.assertFalse(result.passed)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_position_consistent_a_wins(self, mock_urlopen):
+        """Swap mode: A wins in order1, B wins in order2 → A truly better."""
+        mock_urlopen.side_effect = [
+            _mock_api_response({"winner": "A", "reasoning": "A correct", "confidence": "high"}),
+            _mock_api_response({"winner": "B", "reasoning": "B correct", "confidence": "high"}),
+        ]
+        p = JudgeProvider(api_key="test")
+        result = judge_pairwise(p, prompt="Q", response_a="good", response_b="bad")
+        self.assertTrue(result.passed)
+        self.assertEqual(mock_urlopen.call_count, 2)
+        self.assertIn("Position-consistent", result.reasoning)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_position_inconsistent(self, mock_urlopen):
+        """Swap mode: same position wins both times → position bias."""
+        mock_urlopen.side_effect = [
+            _mock_api_response({"winner": "A", "reasoning": "A first", "confidence": "low"}),
+            _mock_api_response({"winner": "A", "reasoning": "A first again", "confidence": "low"}),
+        ]
+        p = JudgeProvider(api_key="test")
+        result = judge_pairwise(p, prompt="Q", response_a="x", response_b="y")
+        self.assertIsNone(result.passed)  # Inconsistent
+        self.assertIn("INCONSISTENT", result.reasoning)
+
+    @patch("agent_eval.judge.urllib.request.urlopen")
+    def test_cost_aggregation_swap(self, mock_urlopen):
+        """Swap mode: costs from both calls are aggregated."""
+        mock_urlopen.side_effect = [
+            _mock_api_response({"winner": "A", "confidence": "high"},
+                usage={"prompt_tokens": 200, "completion_tokens": 100, "total_tokens": 300}),
+            _mock_api_response({"winner": "B", "confidence": "high"},
+                usage={"prompt_tokens": 200, "completion_tokens": 100, "total_tokens": 300}),
+        ]
+        p = JudgeProvider(api_key="test")
+        result = judge_pairwise(p, prompt="Q", response_a="a", response_b="b")
+        self.assertEqual(result.judge_cost.total_tokens, 600)

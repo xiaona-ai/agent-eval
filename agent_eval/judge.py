@@ -445,6 +445,119 @@ def judge_faithfulness(
     )
 
 
+def judge_pairwise(
+    provider: JudgeProvider,
+    prompt: str,
+    response_a: str,
+    response_b: str,
+    *,
+    swap: bool = True,
+    pricing: Optional[Dict[str, Dict[str, float]]] = None,
+) -> JudgeResult:
+    """Judge which of two responses is better (pairwise comparison).
+
+    When swap=True (default), runs the evaluation twice with A/B swapped
+    to detect position bias. The verdict is only credited if both orderings
+    agree (position-consistent accuracy, per JudgeBench methodology).
+
+    Args:
+        provider: JudgeProvider instance.
+        prompt: The original prompt/question.
+        response_a: First response to evaluate.
+        response_b: Second response to evaluate.
+        swap: If True, run twice with swapped order for position-consistency.
+        pricing: Optional pricing table for cost estimation.
+
+    Returns:
+        JudgeResult with:
+        - passed=True if winner is "A" (first response is better)
+        - passed=False if winner is "B"
+        - passed=None if position-inconsistent (swap=True and orderings disagree)
+        - raw_response includes confidence level
+    """
+    def _run_once(a_text, b_text):
+        user_msg = prompts.PAIRWISE_USER.format(
+            prompt=prompt, response_a=a_text, response_b=b_text,
+        )
+        messages = [
+            {"role": "system", "content": prompts.PAIRWISE_SYSTEM},
+            {"role": "user", "content": user_msg},
+        ]
+        raw, usage = provider.complete(messages)
+        parsed = _parse_json_response(raw)
+        cost = provider._make_cost(usage)
+        return parsed, cost, raw
+
+    # First evaluation: A=response_a, B=response_b
+    parsed1, cost1, raw1 = _run_once(response_a, response_b)
+    winner1 = parsed1.get("winner", "").upper().strip()
+    confidence = parsed1.get("confidence", "medium")
+
+    total_cost = JudgeCost(model=provider.model)
+    total_cost.prompt_tokens += cost1.prompt_tokens
+    total_cost.completion_tokens += cost1.completion_tokens
+    total_cost.total_tokens += cost1.total_tokens
+
+    if not swap:
+        # Single evaluation
+        passed = True if winner1 == "A" else (False if winner1 == "B" else None)
+        if pricing:
+            total_cost.compute_cost(pricing)
+        return JudgeResult(
+            passed=passed,
+            reasoning=parsed1.get("reasoning", ""),
+            judge_cost=total_cost,
+            raw_response=json.dumps({"winner": winner1, "confidence": confidence}),
+        )
+
+    # Second evaluation: swapped (A=response_b, B=response_a)
+    parsed2, cost2, raw2 = _run_once(response_b, response_a)
+    winner2 = parsed2.get("winner", "").upper().strip()
+    total_cost.prompt_tokens += cost2.prompt_tokens
+    total_cost.completion_tokens += cost2.completion_tokens
+    total_cost.total_tokens += cost2.total_tokens
+
+    # Position-consistent: winner1="A" and winner2="B" → A is truly better
+    # Or: winner1="B" and winner2="A" → B is truly better
+    if winner1 == "A" and winner2 == "B":
+        # Both orderings agree: response_a is better
+        passed = True
+        reasoning = (
+            f"Position-consistent: A wins in both orderings. "
+            f"Order 1: A wins ({parsed1.get('reasoning', '')[:150]}). "
+            f"Order 2: B wins when swapped, confirming A."
+        )
+    elif winner1 == "B" and winner2 == "A":
+        # Both orderings agree: response_b is better
+        passed = False
+        reasoning = (
+            f"Position-consistent: B wins in both orderings. "
+            f"Order 1: B wins ({parsed1.get('reasoning', '')[:150]}). "
+            f"Order 2: A wins when swapped, confirming B."
+        )
+    else:
+        # Position-inconsistent: judge may have position bias
+        passed = None
+        reasoning = (
+            f"Position-INCONSISTENT: Order 1 chose {winner1}, "
+            f"Order 2 chose {winner2}. Judge shows position bias on this pair."
+        )
+
+    if pricing:
+        total_cost.compute_cost(pricing)
+
+    return JudgeResult(
+        passed=passed,
+        reasoning=reasoning,
+        judge_cost=total_cost,
+        raw_response=json.dumps({
+            "order1_winner": winner1, "order2_winner": winner2,
+            "position_consistent": passed is not None,
+            "confidence": confidence,
+        }),
+    )
+
+
 def _judge_faithfulness_thorough(
     provider: JudgeProvider,
     context: str,

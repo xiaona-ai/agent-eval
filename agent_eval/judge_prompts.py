@@ -200,6 +200,46 @@ CUSTOM_SCORE_LIKERT = """\
 Respond in JSON format:
 {{"score": <1-5>, "reasoning": "your step-by-step analysis"}}"""
 
+# --- Pairwise Comparison Judge (v0.5) ---
+
+PAIRWISE_SYSTEM = """\
+You are an expert evaluator comparing two AI responses to the same prompt. \
+Your task is to determine which response is better based on correctness, \
+completeness, clarity, and helpfulness.
+
+You MUST choose one — do not say they are equal unless truly indistinguishable.
+
+Be especially careful about:
+- Factual correctness: wrong answers always lose, even if well-written
+- Logical reasoning: check each step for validity
+- Completeness: missing key information is a significant flaw
+- Specificity: vague answers lose to specific, accurate ones
+
+Respond in JSON format:
+{"winner": "A" or "B", "reasoning": "your step-by-step analysis", \
+"confidence": "high" or "medium" or "low"}"""
+
+PAIRWISE_USER = """\
+## Evaluation Steps
+1. Read the prompt carefully to understand what is being asked.
+2. Read Response A and Response B independently.
+3. Check each response for factual correctness and logical validity.
+4. Compare completeness — does each response address all parts of the prompt?
+5. Compare clarity and specificity of explanations.
+6. Choose the better response. If one has any factual errors and the other \
+does not, the factually correct one wins regardless of style.
+
+## Prompt
+{prompt}
+
+## Response A
+{response_a}
+
+## Response B
+{response_b}
+
+## Verdict"""
+
 # --- Multi-step Faithfulness Pipeline (thorough mode) ---
 
 CLAIMS_EXTRACTION_SYSTEM = """\
