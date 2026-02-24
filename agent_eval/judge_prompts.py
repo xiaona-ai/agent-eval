@@ -235,8 +235,8 @@ supported by, contradicted by, fabricated beyond, or not addressed in \
 the provided context.
 
 Respond in JSON format:
-{{"verdicts": [{{"claim": "...", "verdict": "supported|contradicted|fabricated|idk", \
-"reason": "..."}}]}}"""
+{"verdicts": [{"claim": "...", "verdict": "supported|contradicted|fabricated|idk", \
+"reason": "..."}]}"""
 
 CLAIM_VERIFICATION_USER = """\
 For each claim below, classify it against the provided context:

@@ -124,7 +124,10 @@ class JudgeJury:
     def _aggregate(self, votes: List[JudgeResult]) -> JuryVerdict:
         """Aggregate votes by majority voting."""
         # Separate valid votes from errors
-        valid_votes = [v for v in votes if v.passed is not None or v.score is not None]
+        valid_votes = [
+            v for v in votes
+            if isinstance(v, JudgeResult) and (v.passed is not None or v.score is not None)
+        ]
 
         if not valid_votes:
             return JuryVerdict(
@@ -158,6 +161,7 @@ class JudgeJury:
         """Majority vote for binary (pass/fail) judges."""
         pass_count = sum(1 for v in valid_votes if v.passed)
         fail_count = len(valid_votes) - pass_count
+        # Tie goes to fail (conservative / fail-safe)
         final_passed = pass_count > fail_count
 
         agree_count = pass_count if final_passed else fail_count

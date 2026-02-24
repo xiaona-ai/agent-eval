@@ -427,15 +427,20 @@ class TestFaithfulnessJudge(unittest.TestCase):
 
     @patch("agent_eval.judge.urllib.request.urlopen")
     def test_thorough_no_claims(self, mock_urlopen):
-        """Thorough mode: no claims extracted → pass."""
-        mock_urlopen.return_value = _mock_api_response({"claims": []})
+        """Thorough mode: no claims from non-empty output → falls back to fast mode."""
+        responses = [
+            _mock_api_response({"claims": []}),  # extraction returns empty
+            _mock_api_response({"pass": True, "reasoning": "Fast mode fallback"}),  # fast mode
+        ]
+        mock_urlopen.side_effect = responses
         p = JudgeProvider(api_key="test")
         result = judge_faithfulness(
-            p, context="anything", output="Hello!",
+            p, context="anything", output="Hello there!",
             mode="thorough",
         )
+        # Should fall back to fast mode, not silently pass
         self.assertTrue(result.passed)
-        self.assertEqual(mock_urlopen.call_count, 1)  # Only extraction call
+        self.assertEqual(mock_urlopen.call_count, 2)  # extraction + fast fallback
 
     @patch("agent_eval.judge.urllib.request.urlopen")
     def test_thorough_cost_aggregation(self, mock_urlopen):

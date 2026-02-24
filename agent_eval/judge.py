@@ -405,6 +405,7 @@ def judge_faithfulness(
     provider: JudgeProvider,
     context: str,
     output: str,
+    *,
     mode: str = "fast",
     pricing: Optional[Dict[str, Dict[str, float]]] = None,
 ) -> JudgeResult:
@@ -474,8 +475,19 @@ def _judge_faithfulness_thorough(
     total_cost.total_tokens += cost1.total_tokens
 
     claims = parsed1.get("claims", [])
+    if not isinstance(claims, list):
+        claims = []
+
+    # If output has content but no claims extracted, treat as parse failure
+    # (don't silently pass — fall back to fast mode)
+    if not claims and output.strip():
+        if pricing:
+            total_cost.compute_cost(pricing)
+        # Fallback: use single-call fast mode instead of silently passing
+        return judge_faithfulness(provider, context, output, mode="fast", pricing=pricing)
+
     if not claims:
-        # No claims extracted — pass by default
+        # Truly empty output — pass
         if pricing:
             total_cost.compute_cost(pricing)
         return JudgeResult(
@@ -503,10 +515,21 @@ def _judge_faithfulness_thorough(
 
     # Step 3: Aggregate
     verdicts = parsed2.get("verdicts", [])
+    if not isinstance(verdicts, list):
+        verdicts = []
+
+    # If no verdicts returned but claims exist, treat as verification failure
+    # Fall back to fast mode
+    if not verdicts and claims:
+        if pricing:
+            total_cost.compute_cost(pricing)
+        return judge_faithfulness(provider, context, output, mode="fast", pricing=pricing)
+
     contradicted = []
     fabricated = []
     supported = 0
     idk = 0
+    unknown = 0
     for v in verdicts:
         verdict_val = v.get("verdict", "").lower().strip()
         claim_text = v.get("claim", "")
@@ -518,8 +541,12 @@ def _judge_faithfulness_thorough(
             fabricated.append(label)
         elif verdict_val == "supported":
             supported += 1
-        else:  # idk
+        elif verdict_val == "idk":
             idk += 1
+        else:
+            # Unknown label — treat as suspicious (fail-safe)
+            unknown += 1
+            fabricated.append(f"{label} [unknown verdict: {verdict_val}]")
 
     unfaithful = contradicted + fabricated
     passed = len(unfaithful) == 0
