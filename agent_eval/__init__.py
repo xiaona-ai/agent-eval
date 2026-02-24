@@ -42,6 +42,7 @@ from .judge import (
     judge_reasoning,
     create_custom_judge,
 )
+from .jury import JudgeJury, JuryVerdict
 
 __all__ = [
     # Core
@@ -65,4 +66,6 @@ __all__ = [
     "judge_goal_completion", "judge_trajectory",
     "judge_faithfulness", "judge_reasoning",
     "create_custom_judge",
+    # Jury (v0.5)
+    "JudgeJury", "JuryVerdict",
 ]
